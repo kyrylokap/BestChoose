@@ -41,7 +41,7 @@ const OverviewHeader = ({
     const firstName = user.name.split(" ")[0];
 
     return (
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <header className="flex flex-row items-center justify-between w-full">
             <div>
                 <p className="text-sm text-slate-500">{user.subtitle}</p>
                 <h2 className="text-3xl font-semibold text-slate-900">
