@@ -62,7 +62,7 @@ const OverviewHeader = ({
 
 
 const AiAssistantCard = ({ onStart }: { onStart: () => void }) => (
-    <div className="rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-6 shadow-sm">
+    <div className="rounded-3xl border border-blue-100 bg-linear-to-br from-blue-50 to-white p-6 shadow-sm">
         <div className="flex items-start justify-between">
             <div>
                 <p className="text-sm font-semibold text-blue-600">

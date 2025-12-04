@@ -1,15 +1,15 @@
 export const patientPortalData = {
   interviewCopy:
-    "Describe your symptoms, and our AI assistant will conduct a medical interview and help schedule an appointment with the appropriate specialist.",
+    "Describe your symptoms, and our AI assistant will conduct a medical consultation and help schedule an appointment with the appropriate specialist.",
   quickActions: [
     {
       label: "My Appointments",
-      description: "Browse all confirmed appointments",
+      description: "Browse all appointments",
       targetView: "visits",
     },
     {
-      label: "Interview History",
-      description: "Return to previous AI conversations",
+      label: "Consultation History",
+      description: "Return to previous AI conversations raports",
       targetView: "history",
     },
   ],

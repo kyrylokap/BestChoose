@@ -249,8 +249,6 @@ export const ChatInputArea = ({
   selectedFiles,
   onRemoveFile,
 }: ChatInputAreaProps) => {
-  const isMobile = useIsMobile();
-
   const { openFiles, openGallery, openCamera, HiddenInputs } = useFileAttachments({ onFileSelect });
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -269,7 +267,6 @@ export const ChatInputArea = ({
       <div className="flex items-center gap-3 rounded-2xl bg-white px-4 shadow-sm ring-1 ring-slate-100 relative">
 
         <AttachmentMenu
-          isMobile={isMobile}
           onFiles={openFiles}
           onGallery={openGallery}
           onCamera={openCamera}
@@ -296,24 +293,6 @@ export const ChatInputArea = ({
     </div>
   );
 };
-
-
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      const userAgent = window.navigator.userAgent;
-      return /android.+mobile|ip(hone|[oa]d)/i.test(userAgent);
-    };
-
-    setIsMobile(checkMobile());
-  }, []);
-
-  return isMobile;
-}
-
 
 
 
@@ -379,13 +358,14 @@ const FilePreviews = ({ files, onRemove }: { files: File[], onRemove: (i: number
 
 
 type AttachmentMenuProps = {
-  isMobile: boolean;
   onFiles: () => void;
   onGallery: () => void;
   onCamera: () => void;
 };
 
-const AttachmentMenu = ({ isMobile, onFiles, onGallery, onCamera }: AttachmentMenuProps) => {
+const AttachmentMenu = ({ onFiles, onGallery, onCamera }: AttachmentMenuProps) => {
+  const isMobile = useIsMobile();
+
   const menuItems = isMobile
     ? [
       { label: "Gallery", icon: Images, action: onGallery },
@@ -431,4 +411,22 @@ const AttachmentMenu = ({ isMobile, onFiles, onGallery, onCamera }: AttachmentMe
     </Menu>
   );
 };
+
+
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = window.navigator.userAgent;
+      return /android.+mobile|ip(hone|[oa]d)/i.test(userAgent);
+    };
+
+    setIsMobile(checkMobile());
+  }, []);
+
+  return isMobile;
+}
+
 
