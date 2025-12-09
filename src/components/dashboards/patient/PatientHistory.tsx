@@ -1,3 +1,4 @@
+import { SectionHeader } from "@/components/shared/SectionHeader";
 import { patientInterviewHistory } from "@/data/dashboard-data";
 import { ArrowLeft, Calendar, FileText, CheckCircle2, FileDown } from "lucide-react";
 
@@ -12,7 +13,11 @@ export default function PatientHistory({ onBack }: Props) {
 
   return (
     <section className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <HistoryHeader onBack={onBack} />
+      <SectionHeader
+        title="Consultation History"
+        subtitle="Archive of completed AI preliminary diagnoses"
+        onBack={onBack}
+      />
 
       <div className="flex flex-col gap-3">
         {history.length > 0 ? (
@@ -29,22 +34,6 @@ export default function PatientHistory({ onBack }: Props) {
   );
 }
 
-const HistoryHeader = ({ onBack }: { onBack: () => void }) => (
-  <div className="flex items-center gap-4 mb-8">
-    <button
-      onClick={onBack}
-      className="inline-flex items-center justify-center rounded-full bg-white p-2 text-slate-500 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 hover:text-blue-600"
-    >
-      <ArrowLeft className="h-5 w-5" />
-    </button>
-    <div>
-      <h3 className="text-2xl font-semibold text-slate-900">Consultation History</h3>
-      <p className="text-sm text-slate-500">
-        Archive of completed AI preliminary diagnoses
-      </p>
-    </div>
-  </div>
-);
 
 const HistoryCard = ({ item }: { item: HistoryItem }) => {
   const handleDownload = async (e: React.MouseEvent) => { };

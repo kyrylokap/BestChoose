@@ -1,3 +1,4 @@
+import { SectionHeader } from "@/components/shared/SectionHeader";
 import { patientAppointments } from "@/data/dashboard-data";
 import { ArrowLeft, Calendar, Clock, MapPin, User } from "lucide-react";
 
@@ -12,8 +13,11 @@ export default function PatientVisits({ onBack }: Props) {
 
   return (
     <section className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <VisitsHeader onBack={onBack} />
-
+      <SectionHeader
+        title="My Appointments"
+        subtitle="Upcoming and Scheduled Consultations"
+        onBack={onBack}
+      />
       <div className="flex flex-col gap-4">
         {visits.length > 0 ? (
           visits.map((visit, index) => (
@@ -28,23 +32,6 @@ export default function PatientVisits({ onBack }: Props) {
     </section>
   );
 }
-
-const VisitsHeader = ({ onBack }: { onBack: () => void }) => (
-  <div className="flex items-center gap-4 mb-8">
-    <button
-      onClick={onBack}
-      className="inline-flex items-center justify-center rounded-full bg-white p-2 text-slate-500 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 hover:text-blue-600"
-    >
-      <ArrowLeft className="h-5 w-5" />
-    </button>
-    <div>
-      <h3 className="text-2xl font-semibold text-slate-900">My Appointments</h3>
-      <p className="text-sm text-slate-500">
-        Upcoming and Scheduled Consultations
-      </p>
-    </div>
-  </div>
-);
 
 
 const VisitCard = ({ visit }: { visit: Visit }) => (
@@ -74,7 +61,7 @@ const VisitCard = ({ visit }: { visit: Visit }) => (
           {visit.time} <span className="text-slate-400">({visit.duration})</span>
         </span>
       </div>
-      
+
       <div className="flex items-center gap-2 text-sm text-slate-600">
         <Calendar className="h-4 w-4 text-slate-400" />
         <span>{visit.date}</span>

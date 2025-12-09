@@ -1,0 +1,147 @@
+"use client";
+
+import { DoctorView } from "./DoctorDashboard";
+import DashboardHeader from "../DashboardHeader";
+import { doctorDashboardData } from "@/data/dashboard-data";
+import type { Account } from "@/types/account";
+import {
+    CalendarDays,
+    Clock,
+    User,
+} from "lucide-react";
+
+
+type VisitData = typeof doctorDashboardData.schedule[number];
+
+type DoctorOverviewProps = {
+    user: Account;
+    onLogout: () => void;
+    onNavigate: (view: DoctorView) => void;
+    onVisitSelect: (id: string) => void;
+};
+
+
+export default function DoctorOverview({
+    user,
+    onLogout,
+    onNavigate,
+    onVisitSelect,
+}: DoctorOverviewProps) {
+
+    const handleVisitInteraction = (visitId: string) => {
+        onVisitSelect(visitId);
+        onNavigate("visit");
+    };
+
+    return (
+        <section className="w-full space-y-8">
+            <DashboardHeader user={user} onLogout={onLogout} />
+
+            <StatsGrid stats={doctorDashboardData.stats} />
+
+            <div className="grid gap-6">
+                <ScheduleSection
+                    date={doctorDashboardData.scheduleDate}
+                    schedule={doctorDashboardData.schedule}
+                    onVisitClick={handleVisitInteraction}
+                />
+            </div>
+        </section>
+    );
+}
+
+const StatsGrid = ({ stats }: { stats: typeof doctorDashboardData.stats }) => (
+    <div className="grid gap-4 md:grid-cols-3">
+        {stats.map((stat) => (
+            <StatCard key={stat.label} label={stat.label} value={stat.value} />
+        ))}
+    </div>
+);
+
+const StatCard = ({ label, value }: { label: string; value: string | number }) => (
+    <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
+        <p className="text-sm text-slate-500">{label}</p>
+        <p className="mt-3 text-4xl font-semibold text-slate-900">{value}</p>
+    </div>
+);
+
+const ScheduleSection = ({
+    date,
+    schedule,
+    onVisitClick,
+}: {
+    date: string;
+    schedule: VisitData[];
+    onVisitClick: (id: string) => void;
+}) => {
+    return (
+        <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
+            <div className="mb-6 flex items-center justify-between">
+                <div>
+                    <p className="text-sm text-slate-500">Appointment Calendar</p>
+                    <h3 className="text-2xl font-semibold text-slate-900">{date}</h3>
+                </div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full shrink-0 bg-slate-50">
+                    <CalendarDays className="h-5 w-5 text-slate-400 " />
+                </div>
+            </div>
+
+            <div className="mt-6 space-y-4">
+                {schedule.map((visit) => (
+                    <AppointmentCard
+                        key={visit.id}
+                        visit={visit}
+                        onClick={() => onVisitClick(visit.id)}
+                    />
+                ))}
+            </div>
+        </section>
+    );
+};
+
+const AppointmentCard = ({
+    visit,
+    onClick
+}: {
+    visit: VisitData;
+    onClick: () => void;
+}) => {
+    return (
+        <button
+            onClick={onClick}
+            className="group w-full rounded-2xl border border-slate-100 bg-white p-4 text-left transition-all hover:border-blue-200 hover:bg-blue-50/60 hover:shadow-sm"
+        >
+            <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600 group-hover:bg-blue-200/50 group-hover:text-blue-700 transition-colors">
+                        <User className="h-6 w-6" />
+                    </div>
+
+                    <div className="flex-1">
+                        <p className="line-clamp-1 break-all font-semibold text-slate-900">
+                            {visit.patient}
+                        </p>
+                        <p className="text-sm text-slate-500">{visit.type}</p>
+                    </div>
+
+                    <div className="flex flex-col items-center shrink-0">
+                        <div className="flex items-center gap-2 rounded-full bg-slate-50 px-2 py-1 group-hover:bg-white/50">
+                            <Clock className="h-4 w-4 text-slate-500" />
+                            <span className="text-slate-900">{visit.time}</span>
+                        </div>
+                        <span className="text-slate-500">{visit.duration}</span>
+                    </div>
+                </div>
+
+                {visit.hasReport && (
+                    <span className="inline-flex shrink-0 items-center rounded-full w-fit bg-purple-100 px-2.5 py-0.5 text-xs font-bold text-purple-700">
+                        AI Report
+                    </span>
+                )}
+                <p className="line-clamp-1 break-all text-sm text-slate-500">
+                    {visit.symptoms}
+                </p>
+            </div>
+        </button>
+    );
+};

@@ -2,6 +2,7 @@ import { patientPortalData } from "@/data/dashboard-data";
 import { CalendarDays, Clock, LogOut, MessageSquare, Sparkles } from "lucide-react";
 import type { PatientView } from "./PatientDashboard";
 import { Account } from "@/types/account";
+import DashboardHeader from "../DashboardHeader";
 
 type PatientOverviewProps = {
     user: Account;
@@ -15,7 +16,8 @@ export default function PatientOverview({ user, onLogout, onNavigate }: PatientO
 
     return (
         <div className="space-y-6">
-            <OverviewHeader user={user} onLogout={onLogout} />
+            <DashboardHeader user={user} onLogout={onLogout} />
+
 
             <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
                 <AiAssistantCard onStart={() => onNavigate("interview")} />
@@ -28,35 +30,6 @@ export default function PatientOverview({ user, onLogout, onNavigate }: PatientO
 
             <UpcomingVisitCard visit={visitHighlight} />
         </div>
-    );
-}
-
-const OverviewHeader = ({
-    user,
-    onLogout
-}: {
-    user: Account;
-    onLogout: () => void;
-}) => {
-    const firstName = user.name.split(" ")[0];
-
-    return (
-        <header className="flex flex-row items-center justify-between w-full">
-            <div>
-                <p className="text-sm text-slate-500">{user.subtitle}</p>
-                <h2 className="text-3xl font-semibold text-slate-900">
-                    Hi, {firstName}!
-                </h2>
-            </div>
-            <button
-                onClick={onLogout}
-                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-white"
-            >
-                <LogOut className="h-4 w-4" />
-                Log out
-            </button>
-        </header>
-
     );
 }
 
@@ -87,6 +60,7 @@ const AiAssistantCard = ({ onStart }: { onStart: () => void }) => (
     </div>
 );
 
+
 const QuickActionsList = ({
     actions,
     onNavigate,
@@ -110,6 +84,7 @@ const QuickActionsList = ({
         </div>
     </div>
 );
+
 
 const UpcomingVisitCard = ({
     visit,
