@@ -9,10 +9,12 @@ import { useDoctors } from "@/hooks/useDoctors";
 import { AddDoctor } from "@/components/shared/AddDoctor";
 import { UpdateDoctor } from "@/components/shared/UpdateDoctor";
 import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
 
 type AdminView = "overview" | "addDoctor" | "updateDoctor";
 
 export default function AdminDashboard() {
+  const { logOut } = useAuth();
   const { doctors, deleteDoctor } = useDoctors();
 
   const [view, setView] = useState<AdminView>("overview");
@@ -55,7 +57,7 @@ export default function AdminDashboard() {
         </div>
         <Link
           href={"/login"}
-          //   onClick={onLogout}
+          onClick={logOut}
           className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-white"
         >
           <LogOut className="h-4 w-4" />
