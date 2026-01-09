@@ -6,6 +6,22 @@ import { useRouter } from "next/navigation";
 
 export default function LoginScreen() {
   const router = useRouter();
+  
+  //TODO: For testing how another dashboard works
+  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const emailInput = (e.currentTarget.elements.namedItem('email') as HTMLInputElement).value;
+
+    if (emailInput.includes("admin")) {
+      router.push("/admin");
+    } else if (emailInput.includes("doctor")) {
+      router.push("/doctor");
+    } else {
+      router.push("/login");
+    }
+  };
+
   return (
     <div className="mx-auto w-full max-w-xl rounded-3xl bg-white/95 p-8 shadow-2xl shadow-blue-100 ring-1 ring-slate-100">
       <div className="mb-8 flex flex-col items-center text-center">
@@ -20,10 +36,7 @@ export default function LoginScreen() {
 
       <form
         className="space-y-5"
-        onSubmit={(e) => {
-          e.preventDefault();
-          router.push("/admin");
-        }}
+        onSubmit={handleLogin}
       >
         <div>
           <label className="text-sm font-medium text-slate-600" htmlFor="email">

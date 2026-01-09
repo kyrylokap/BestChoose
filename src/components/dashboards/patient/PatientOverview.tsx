@@ -1,40 +1,39 @@
 import { patientPortalData } from "@/data/dashboard-data";
-import {
-  CalendarDays,
-  Clock,
-  LogOut,
-  MessageSquare,
-  Sparkles,
-} from "lucide-react";
-import type { PatientView } from "./PatientDashboard";
+import { CalendarDays, Clock, MessageSquare, Sparkles } from "lucide-react";
 import { Account } from "@/types/account";
 import DashboardHeader from "../DashboardHeader";
+import { useRouter } from "next/navigation";
 
 type PatientOverviewProps = {
-  user: Account;
-  onNavigate: (view: PatientView) => void;
+    user: Account;
+    onLogout: () => void;
 };
 
-export default function PatientOverview({
-  user,
-  onNavigate,
-}: PatientOverviewProps) {
-  const quickActions = patientPortalData.quickActions;
-  const visitHighlight = patientPortalData.upcomingHighlight;
+export default function PatientOverview({ user, onLogout }: PatientOverviewProps) {
+    const router = useRouter();
+    const quickActions = patientPortalData.quickActions;
+    const visitHighlight = patientPortalData.upcomingHighlight;
 
-  return (
-    <div className="space-y-6">
-      <DashboardHeader user={user} />
+    const handleNavigate = (view: string) => {
+        router.push(`/patient/${view}`);
+    };
 
-      <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-        <AiAssistantCard onStart={() => onNavigate("interview")} />
+    return (
+        <div className="space-y-6">
+            <DashboardHeader user={user} />
 
-        <QuickActionsList actions={quickActions} onNavigate={onNavigate} />
-      </div>
+            <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+                <AiAssistantCard onStart={() => router.push("/patient/interview")} />
 
-      <UpcomingVisitCard visit={visitHighlight} />
-    </div>
-  );
+                <QuickActionsList
+                    actions={quickActions}
+                    onNavigate={handleNavigate}
+                />
+            </div>
+
+            <UpcomingVisitCard visit={visitHighlight} />
+        </div>
+    );
 }
 
 const AiAssistantCard = ({ onStart }: { onStart: () => void }) => (
@@ -67,24 +66,24 @@ const QuickActionsList = ({
   actions,
   onNavigate,
 }: {
-  actions: typeof patientPortalData.quickActions;
-  onNavigate: (view: PatientView) => void;
+    actions: typeof patientPortalData.quickActions;
+    onNavigate: (view: string) => void;
 }) => (
-  <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
-    <p className="text-sm font-semibold text-slate-500">Quick Actions</p>
-    <div className="mt-4 space-y-3">
-      {actions.map((action) => (
-        <button
-          key={action.label}
-          onClick={() => onNavigate(action.targetView as PatientView)}
-          className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-left transition hover:border-blue-200 hover:bg-blue-50"
-        >
-          <p className="text-sm font-semibold text-slate-900">{action.label}</p>
-          <p className="text-xs text-slate-500">{action.description}</p>
-        </button>
-      ))}
+    <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
+        <p className="text-sm font-semibold text-slate-500">Quick Actions</p>
+        <div className="mt-4 space-y-3">
+            {actions.map((action) => (
+                <button
+                    key={action.label}
+                    onClick={() => onNavigate(action.targetView)}
+                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-left transition hover:border-blue-200 hover:bg-blue-50"
+                >
+                    <p className="text-sm font-semibold text-slate-900">{action.label}</p>
+                    <p className="text-xs text-slate-500">{action.description}</p>
+                </button>
+            ))}
+        </div>
     </div>
-  </div>
 );
 
 const UpcomingVisitCard = ({

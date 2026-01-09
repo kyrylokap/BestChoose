@@ -1,6 +1,5 @@
 "use client";
 
-import { DoctorView } from "./DoctorDashboard";
 import DashboardHeader from "../DashboardHeader";
 import { doctorDashboardData } from "@/data/dashboard-data";
 import type { Account } from "@/types/account";
@@ -9,33 +8,28 @@ import {
     Clock,
     User,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 
 type VisitData = typeof doctorDashboardData.schedule[number];
 
 type DoctorOverviewProps = {
     user: Account;
-    onLogout: () => void;
-    onNavigate: (view: DoctorView) => void;
-    onVisitSelect: (id: string) => void;
 };
 
 
 export default function DoctorOverview({
     user,
-    onLogout,
-    onNavigate,
-    onVisitSelect,
 }: DoctorOverviewProps) {
+    const router = useRouter();
 
     const handleVisitInteraction = (visitId: string) => {
-        onVisitSelect(visitId);
-        onNavigate("visit");
+        router.push(`/doctor/visit/${visitId}`);
     };
 
     return (
         <section className="w-full space-y-8">
-            <DashboardHeader user={user} onLogout={onLogout} />
+            <DashboardHeader user={user}/>
 
             <StatsGrid stats={doctorDashboardData.stats} />
 

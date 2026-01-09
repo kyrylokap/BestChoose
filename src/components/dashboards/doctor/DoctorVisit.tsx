@@ -14,23 +14,21 @@ import {
     ThumbsDown,
     ThumbsUp,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 
 type AiRatingType = "accurate" | "inaccurate" | null;
 
 type DoctorVisitProps = {
-    user: Account;
     visitId: string;
-    onBack: () => void;
 };
 
 
 
 export default function DoctorVisit({
-    user,
     visitId,
-    onBack,
 }: DoctorVisitProps) {
+    const router = useRouter();
     const [diagnosis, setDiagnosis] = useState("");
     const [aiRating, setAiRating] = useState<AiRatingType>(null);
     const [savedMessage, setSavedMessage] = useState("");
@@ -51,7 +49,7 @@ export default function DoctorVisit({
             <SectionHeader
                 title="Appointment Details"
                 subtitle="Patient information and AI analysis summary"
-                onBack={onBack}
+                onBack={() => router.back()}
             />
 
             <AppointmentDetailsCard visit={selectedVisit} />

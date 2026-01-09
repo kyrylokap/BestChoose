@@ -12,5 +12,5 @@ export default function Home() {
       router.push("/");
     }
   }, [router, user]);
-  return <div></div>;
+  return <div ></div>;
 }
