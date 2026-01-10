@@ -1,9 +1,8 @@
 import { LogOut } from "lucide-react";
-import type { Account } from "@/types/account";
 import Link from "next/link";
 
 type DashboardHeaderProps = {
-  user: Account;
+  user: any;
 };
 
 export default function DashboardHeader({ user }: DashboardHeaderProps) {
@@ -12,7 +11,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
       <div>
         <p className="text-sm text-slate-500">{user.subtitle}</p>
         <h2 className="text-3xl font-semibold text-slate-900">
-          Hi, {user.name}!
+          Hi, {user?.first_name} {user?.last_name}!
         </h2>
         <p className="text-sm text-slate-500">
           Manage appointments and view reports

@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 export default function LoginScreen() {
   const router = useRouter();
 
-  //TODO: For testing how another dashboard works
+  // TODO: For testing how another dashboard works
   const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 

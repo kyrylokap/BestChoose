@@ -1,31 +1,32 @@
-import { SectionHeader } from "@/components/shared/SectionHeader";
-import { patientInterviewHistory } from "@/data/dashboard-data";
-import { ArrowLeft, Calendar, FileText, CheckCircle2, FileDown } from "lucide-react";
+"use client"
 
-type HistoryItem = typeof patientInterviewHistory[0];
+import { ReportItem } from "@/app/(dashboard)/patient/history/page";
+import { SectionHeader } from "@/components/shared/SectionHeader";
+import { Calendar, CheckCircle2, FileDown } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type Props = {
-  onBack: () => void;
+  reports: ReportItem[]
 };
 
-export default function PatientHistory({ onBack }: Props) {
-  const history = patientInterviewHistory;
+export default function PatientReportHistory({ reports }: Props) {
+  const router = useRouter();
 
   return (
     <section className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
       <SectionHeader
         title="Consultation History"
         subtitle="Archive of completed AI preliminary diagnoses"
-        onBack={onBack}
+        onBack={() => router.back()}
       />
 
       <div className="flex flex-col gap-3">
-        {history.length > 0 ? (
-          history.map((item) => (
-            <HistoryCard key={item.id} item={item} />
+        {reports.length > 0 ? (
+          reports.map((item) => (
+            <HistoryCard key={item.id} report={item} />
           ))
         ) : (
-          <div className="py-10 text-center text-slate-500">
+          <div className="rounded-3xl bg-slate-50 p-8 text-center text-slate-500">
             No consultation history
           </div>
         )}
@@ -35,7 +36,7 @@ export default function PatientHistory({ onBack }: Props) {
 }
 
 
-const HistoryCard = ({ item }: { item: HistoryItem }) => {
+const HistoryCard = ({ report }: { report: ReportItem }) => {
   const handleDownload = async (e: React.MouseEvent) => { };
 
   return (
@@ -48,17 +49,17 @@ const HistoryCard = ({ item }: { item: HistoryItem }) => {
           <FileDown className="h-6 w-6" />
         </div>
         <div>
-          <p className="font-semibold text-slate-900">{item.summary}</p>
+          <p className="font-semibold text-slate-900">{report.title}</p>
           <div className="mt-1 flex items-center gap-2 text-sm text-slate-500">
             <Calendar className="h-3.5 w-3.5" />
-            <span>{item.date}</span>
+            <span>{report.date} · {report.time}</span>s
           </div>
         </div>
       </div>
 
       <div className="flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600">
         <CheckCircle2 className="h-3.5 w-3.5" />
-        <span>{item.status}</span>
+        <span>{report.status}</span>
       </div>
     </div>
   )

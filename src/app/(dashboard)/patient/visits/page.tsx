@@ -1,15 +1,13 @@
-"use client";
+import PatientVisits from "@/components/dashboards/patient/PatientVisits";
+import { getAppointments } from "@/lib/services/appointment-service";
 
-import PatientVisits from "@/components/dashboards/patient/PatientVisits"; 
-import { useRouter } from "next/navigation";
-
-export default function VisitsPage() {
-  const router = useRouter();
+export default async function VisitsPage() {
+  const appointments = await getAppointments('all');
 
   return (
     <div className="flex-1 w-full">
-      <PatientVisits 
-        onBack={() => router.back()} 
+      <PatientVisits
+        appointments={appointments}
       />
     </div>
   );

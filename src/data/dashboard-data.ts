@@ -1,8 +1,12 @@
 import { Doctor } from "@/types/Doctor";
 
 export const patientPortalData = {
-  interviewCopy:
-    "Describe your symptoms, and our AI assistant will conduct a medical consultation and help schedule an appointment with the appropriate specialist.",
+  aiCard: {
+    label: "AI Medical Assistant",
+    title: "Begin a New Consultation",
+    description: "Describe your symptoms, and our AI assistant will conduct a medical consultation and help schedule an appointment with the appropriate specialist.",
+    buttonText: "Begin a New Consultation"
+  },
   quickActions: [
     {
       label: "My Appointments",
@@ -15,74 +19,7 @@ export const patientPortalData = {
       targetView: "history",
     },
   ],
-  upcomingHighlight: {
-    doctor: "Dr Anna Nowak",
-    specialization: "Otolaryngologist",
-    date: "Tuesday, November 25, 2025",
-    time: "10:00",
-    status: "Confirmed",
-  },
 };
-
-export const patientAppointments = {
-  upcoming: [
-    {
-      doctor: "Dr Anna Nowak",
-      specialization: "Otolaryngologist",
-      date: "Tuesday, November 25, 2025",
-      time: "10:00",
-      duration: "30 min",
-      status: "Confirmed",
-      location: "Office 12, ul. Zdrowa 4",
-    },
-    {
-      doctor: "Dr Piotr Wiśniewski",
-      specialization: "Internist",
-      date: "Wednesday, December 3, 2025",
-      time: "09:30",
-      duration: "30 min",
-      status: "Pending",
-      location: "OrtoSport",
-    },
-  ],
-  history: [
-    {
-      doctor: "Dr Maria Nowak",
-      specialization: "Check-up",
-      date: "September 12, 2025",
-      notes: "Check-up after antibiotic therapy",
-      status: "Completed",
-    },
-    {
-      doctor: "Dr Tomasz Lis",
-      specialization: "Dermatologist",
-      date: "August 8, 2025",
-      notes: "Skin allergy diagnosis",
-      status: "Completed",
-    },
-  ],
-};
-
-export const patientInterviewHistory = [
-  {
-    id: "rap-3051",
-    date: "November 25, 2025 · 14:28",
-    summary: "Sore throat, difficulty swallowing",
-    status: "Sent to doctor",
-  },
-  {
-    id: "rap-2972",
-    date: "November 3, 2025 · 09:10",
-    summary: "Runny nose and stuffy nose feeling",
-    status: "AI-Recommended Consultations",
-  },
-  {
-    id: "rap-2830",
-    date: "October 18, 2025 · 19:46",
-    summary: "Headache, fatigue",
-    status: "Completed",
-  },
-];
 
 export const patientInterview = {
   title: "AI Medical Assistant",
