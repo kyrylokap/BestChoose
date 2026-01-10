@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 export default function LoginScreen() {
   const router = useRouter();
-  
+
   //TODO: For testing how another dashboard works
   const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -17,6 +17,8 @@ export default function LoginScreen() {
       router.push("/admin");
     } else if (emailInput.includes("doctor")) {
       router.push("/doctor");
+    } else if (emailInput.includes("patient")) {
+      router.push("/patient");
     } else {
       router.push("/login");
     }

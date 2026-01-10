@@ -1,3 +1,5 @@
+"use client"
+
 import { patientPortalData } from "@/data/dashboard-data";
 import { CalendarDays, Clock, MessageSquare, Sparkles } from "lucide-react";
 import { Account } from "@/types/account";
@@ -6,10 +8,9 @@ import { useRouter } from "next/navigation";
 
 type PatientOverviewProps = {
     user: Account;
-    onLogout: () => void;
 };
 
-export default function PatientOverview({ user, onLogout }: PatientOverviewProps) {
+export default function PatientOverview({ user }: PatientOverviewProps) {
     const router = useRouter();
     const quickActions = patientPortalData.quickActions;
     const visitHighlight = patientPortalData.upcomingHighlight;
