@@ -1,5 +1,4 @@
-import { useDoctors } from "@/hooks/useDoctors";
-import { Doctor } from "@/types/Doctor";
+import { useAdmin } from "@/hooks/useAdmin";
 import { useState } from "react";
 
 export function AddDoctor({
@@ -9,30 +8,27 @@ export function AddDoctor({
   onBack: () => void;
   onCancel: () => void;
 }) {
-  const { addDoctor } = useDoctors();
+  const { addDoctor } = useAdmin();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [specialization, setSpecialization] = useState("");
   const [workStartDate, setWorkStartDate] = useState("");
-  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const newDoctor: Doctor = {
-      id: crypto.randomUUID(),
-      firstName,
-      lastName,
+    const newDoctor = {
+      first_name: firstName,
+      last_name: lastName,
       email,
       specialization,
-      workStartDate: workStartDate.toString(),
-      phone,
+      work_start_date: workStartDate,
       password,
     };
     addDoctor(newDoctor);
-    alert("Lekarz został dodany!");
+
     onBack();
   };
 
@@ -50,7 +46,7 @@ export function AddDoctor({
                 htmlFor="firstName"
                 className="mb-2 block text-sm font-medium text-slate-700"
               >
-                Name <span className="text-red-500">*</span>
+                First Name <span className="text-red-500">*</span>
               </label>
               <input
                 id="firstName"
@@ -66,7 +62,7 @@ export function AddDoctor({
                 htmlFor="lastName"
                 className="mb-2 block text-sm font-medium text-slate-700"
               >
-                Surname <span className="text-red-500">*</span>
+                Last Name <span className="text-red-500">*</span>
               </label>
               <input
                 id="lastName"
@@ -128,23 +124,6 @@ export function AddDoctor({
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white"
               />
             </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="phone"
-              className="mb-2 block text-sm font-medium text-slate-700"
-            >
-              Phone <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="phone"
-              required
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white"
-            />
           </div>
 
           <div>

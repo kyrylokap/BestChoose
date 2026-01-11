@@ -1,8 +1,27 @@
 "use client";
-import { Lock, Mail, Stethoscope } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Lock, Mail, Stethoscope, User2Icon } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 export default function RegisterScreen() {
+  const { register } = useAuth();
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [firstName, setFirstName] = useState<string>("");
+
+  const [lastName, setLastName] = useState<string>("");
+
+  const onSubmitRegister = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    await register({
+      email,
+      password,
+      first_name: firstName,
+      last_name: lastName,
+    });
+    console.log("register");
+  };
   return (
     <main>
       <div className="mx-auto w-full max-w-xl rounded-3xl bg-white/95 p-8 shadow-2xl shadow-blue-100 ring-1 ring-slate-100 ">
@@ -18,7 +37,45 @@ export default function RegisterScreen() {
           </h1>
         </div>
 
-        <form className="space-y-5" onSubmit={() => {}}>
+        <form className="space-y-5" onSubmit={onSubmitRegister}>
+          <div>
+            <label
+              className="text-sm font-medium text-slate-600"
+              htmlFor="firstName"
+            >
+              First Name
+            </label>
+            <div className="relative mt-2">
+              <User2Icon className="absolute left-4 top-3 h-5 w-5 text-slate-400" />
+              <input
+                id="firstName"
+                type="text"
+                required
+                value={firstName}
+                onChange={(event) => setFirstName(event.target.value)}
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-11 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white"
+              />
+            </div>
+          </div>
+          <div>
+            <label
+              className="text-sm font-medium text-slate-600"
+              htmlFor="lastName"
+            >
+              Last Name
+            </label>
+            <div className="relative mt-2">
+              <User2Icon className="absolute left-4 top-3 h-5 w-5 text-slate-400" />
+              <input
+                id="lastName"
+                type="text"
+                required
+                value={lastName}
+                onChange={(event) => setLastName(event.target.value)}
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-11 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white"
+              />
+            </div>
+          </div>
           <div>
             <label
               className="text-sm font-medium text-slate-600"
@@ -32,11 +89,8 @@ export default function RegisterScreen() {
                 id="email"
                 type="email"
                 required
-                value={"email"}
-                onChange={(event) =>
-                  //   onFieldChange("password", event.target.value)
-                  {}
-                }
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
                 placeholder="twoj@email.com"
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-11 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white"
               />
@@ -56,11 +110,8 @@ export default function RegisterScreen() {
                 id="password"
                 type="password"
                 required
-                value={"password"}
-                onChange={(event) =>
-                  //   onFieldChange("password", event.target.value)
-                  {}
-                }
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
                 placeholder="••••••••"
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-11 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white"
               />

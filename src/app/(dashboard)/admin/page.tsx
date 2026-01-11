@@ -1,22 +1,32 @@
 "use client";
-
-import { DOCTORS } from "@/data/dashboard-data";
-import type { Account } from "@/types/account";
 import { Edit2, LogOut, Trash2, UserPlus, Users } from "lucide-react";
-import { useState } from "react";
-import { Doctor } from "@/types/Doctor";
-import { useDoctors } from "@/hooks/useDoctors";
+import { useEffect, useState } from "react";
+import { Doctor, useAdmin } from "@/hooks/useAdmin";
 import { AddDoctor } from "@/components/shared/AddDoctor";
 import { UpdateDoctor } from "@/components/shared/UpdateDoctor";
 import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
+import { useSession } from "@/components/hoc/AuthSessionProvider";
 
 type AdminView = "overview" | "addDoctor" | "updateDoctor";
 
 export default function AdminDashboard() {
-  const { doctors, deleteDoctor } = useDoctors();
-
   const [view, setView] = useState<AdminView>("overview");
-  const [updateDoctor, setUpdateDoctor] = useState<Doctor>(null);
+  const [updateDoctor, setUpdateDoctor] = useState(null);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const { session } = useSession();
+
+  const { logOut } = useAuth();
+  const { getDoctors, deleteDoctor, addDoctor } = useAdmin();
+
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      const fetchedDoctors = await getDoctors();
+      setDoctors(fetchedDoctors);
+    };
+    fetchDoctors();
+  }, [getDoctors, addDoctor]);
+
   if (view === "addDoctor") {
     return (
       <AddDoctor
@@ -36,7 +46,6 @@ export default function AdminDashboard() {
       />
     );
   }
-
   return (
     <section className="flex-col space-y-8 flex">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -47,15 +56,15 @@ export default function AdminDashboard() {
             </div>
             <div>
               <h2 className="text-2xl font-semibold text-slate-900">
-                {/* {user.name} */}
+                {session?.user?.user_metadata?.first_name}
+                {session?.user?.user_metadata?.last_name}
               </h2>
-              {/* <p className="text-sm text-slate-500">{user.subtitle}</p> */}
             </div>
           </div>
         </div>
         <Link
           href={"/login"}
-          //   onClick={onLogout}
+          onClick={logOut}
           className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-white"
         >
           <LogOut className="h-4 w-4" />
@@ -81,59 +90,70 @@ export default function AdminDashboard() {
         </div>
 
         <div className="max-h-130 overflow-y-auto">
-          <table className="w-full text-left text-sm ">
-            <thead className="sticky top-0 bg-white border-b border-slate-200 ">
-              <tr>
-                <th className="pb-3 font-semibold text-slate-900">
-                  Name and Surname
-                </th>
-                <th className="pb-3 font-semibold text-slate-900">Email</th>
-                <th className="pb-3 font-semibold text-slate-900">
+          <table className="w-full text-sm ">
+            <thead className=" border-b border-slate-200 ">
+              <tr className=" justify-around">
+                <th className=" font-semibold text-slate-900">First Name</th>
+                <th className=" font-semibold text-slate-900">Last Name</th>
+                <th className=" font-semibold text-slate-900">
                   Specialization
                 </th>
-                <th className="pb-3 font-semibold text-slate-900">
+
+                <th className=" font-semibold text-slate-900">Email</th>
+                <th className=" font-semibold text-slate-900">Password</th>
+                <th className=" font-semibold text-slate-900">
                   Start work date
                 </th>
-                <th className="pb-3 font-semibold text-slate-900">Actions</th>
+                <th className=" font-semibold text-slate-900">Actions</th>
               </tr>
             </thead>
-
             <tbody>
-              {doctors.map((doctor) => (
-                <tr key={doctor?.id} className="border-b border-slate-100">
-                  <td className="py-4 text-slate-900">
-                    Dr. {doctor?.firstName} {doctor?.lastName}
-                  </td>
-                  <td className="py-4 text-slate-600">{doctor?.email}</td>
-                  <td className="py-4 text-slate-600">
-                    {doctor?.specialization}
-                  </td>
-                  <td className="py-4 text-slate-600">
-                    {doctor?.workStartDate}
-                  </td>
-                  <td className="py-4">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => {
-                          setUpdateDoctor(doctor);
-                          setView("updateDoctor");
-                        }}
-                        className="rounded-lg p-2 text-slate-600 transition hover:bg-slate-100"
-                        title="Edit"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => deleteDoctor(doctor!.id)}
-                        className="rounded-lg p-2 text-red-600 transition hover:bg-red-50"
-                        title="Delete"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
+              {doctors.length > 0 ? (
+                doctors.map((doctor) => (
+                  <tr
+                    key={doctor.id}
+                    className="border-b border-slate-100  bg-red-500 justify-around"
+                  >
+                    <td className="py-4 text-slate-900">{doctor.first_name}</td>
+                    <td className="py-4 text-slate-900">{doctor.last_name}</td>
+                    <td className="py-4 text-slate-600">
+                      {doctor.specialization}
+                    </td>
+                    <td className="py-4 text-slate-600">{doctor.email}</td>
+                    <td className="py-4 text-slate-600">hi</td>
+                    <td className="py-4 text-slate-600">
+                      {doctor.work_start_date}
+                    </td>
+                    <td className="py-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            // setUpdateDoctor(doctor);
+                            setView("updateDoctor");
+                          }}
+                          className="rounded-lg p-2 text-slate-600 transition hover:bg-slate-100"
+                          title="Edit"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteDoctor(doctor!.id)}
+                          className="rounded-lg p-2 text-red-600 transition hover:bg-red-50"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className="py-4 text-center text-slate-600">
+                    No doctors found.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

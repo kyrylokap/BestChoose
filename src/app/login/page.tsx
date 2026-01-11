@@ -1,27 +1,18 @@
 "use client";
 
+import { useAuth } from "@/hooks/useAuth";
 import { Lock, Mail, Stethoscope } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function LoginScreen() {
-  const router = useRouter();
+  const { logIn } = useAuth();
 
-  // TODO: For testing how another dashboard works
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const onSubmitRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const emailInput = (e.currentTarget.elements.namedItem('email') as HTMLInputElement).value;
-
-    if (emailInput.includes("admin")) {
-      router.push("/admin");
-    } else if (emailInput.includes("doctor")) {
-      router.push("/doctor");
-    } else if (emailInput.includes("patient")) {
-      router.push("/patient");
-    } else {
-      router.push("/login");
-    }
+    await logIn({ email, password });
   };
 
   return (
@@ -36,10 +27,7 @@ export default function LoginScreen() {
         </h1>
       </div>
 
-      <form
-        className="space-y-5"
-        onSubmit={handleLogin}
-      >
+      <form className="space-y-5" onSubmit={onSubmitRegister}>
         <div>
           <label className="text-sm font-medium text-slate-600" htmlFor="email">
             Email
@@ -50,8 +38,8 @@ export default function LoginScreen() {
               id="email"
               type="email"
               required
-              // value={email}
-              // onChange={(event) => onFieldChange("email", event.target.value)}
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
               placeholder="your@email.com"
               className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-11 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white"
             />
@@ -71,10 +59,8 @@ export default function LoginScreen() {
               id="password"
               type="password"
               required
-              // value={password}
-              // onChange={(event) =>
-              //   onFieldChange("password", event.target.value)
-              // }
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
               placeholder="••••••••"
               className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-11 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white"
             />
