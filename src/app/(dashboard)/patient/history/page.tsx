@@ -19,8 +19,15 @@ export const getReports = async () => {
 
   const { data: reports, error } = await supabase
     .from('reports')
-    .select('id, created_at, title, status')
-    .order('created_at', { ascending: false })
+    .select(`
+      id, 
+      status,
+      appointments (
+        symptoms,
+        scheduled_time
+      )
+    `)
+    .order('scheduled_time', { referencedTable: 'appointments', ascending: false });
 
   if (error || !reports) {
     console.error('Error fetching raports:', error);
@@ -34,15 +41,20 @@ export type ReportItem = {
   id: string;
   date: string;
   time: string
-  title: string;
+  symptoms: string;
   status: string;
 }
 
 const formatReport = (item: any): ReportItem => {
-  const dateObj = new Date(item.scheduled_time);
+  const appointment = Array.isArray(item.appointments)
+    ? item.appointments[0]
+    : item.appointments;
+
+  const dateObj = new Date(appointment?.scheduled_time);
+
   return {
     id: item.id,
-    title: item.title,
+    symptoms: appointment?.symptoms || 'No data on symptoms',
     date: dateObj.toLocaleDateString('en-US', {
       year: 'numeric', month: 'long', day: 'numeric'
     }),

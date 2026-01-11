@@ -15,6 +15,6 @@ export async function getAuthenticatedUser() {
     .select("*")
     .eq("id", user.id)
     .single();
-
+    
   return  profile ;
 }

@@ -1,8 +1,7 @@
 "use client";
 
+import { DoctorAppointment } from "@/app/(dashboard)/doctor/page";
 import DashboardHeader from "../DashboardHeader";
-import { doctorDashboardData } from "@/data/dashboard-data";
-import type { Account } from "@/types/account";
 import {
     CalendarDays,
     Clock,
@@ -11,15 +10,22 @@ import {
 import { useRouter } from "next/navigation";
 
 
-type VisitData = typeof doctorDashboardData.schedule[number];
 
 type DoctorOverviewProps = {
-    user: Account;
+    user: any;
+    stats: {
+        todayAppointments: number,
+        totalPatients: number,
+        aiReports: number
+    }
+    schedule: DoctorAppointment[]
 };
 
 
 export default function DoctorOverview({
     user,
+    stats,
+    schedule
 }: DoctorOverviewProps) {
     const router = useRouter();
 
@@ -27,16 +33,30 @@ export default function DoctorOverview({
         router.push(`/doctor/visit/${visitId}`);
     };
 
+    const statsList = [
+        {
+            label: "Appointments Today",
+            value: stats.todayAppointments,
+        },
+        {
+            label: "Appointments with AI Report",
+            value: stats.totalPatients,
+        },
+        {
+            label: "Total Patients",
+            value: stats.aiReports,
+        },
+    ];
+
     return (
         <section className="w-full space-y-8">
-            <DashboardHeader user={user}/>
+            <DashboardHeader user={user} />
 
-            <StatsGrid stats={doctorDashboardData.stats} />
+            <StatsGrid stats={statsList} />
 
             <div className="grid gap-6">
                 <ScheduleSection
-                    date={doctorDashboardData.scheduleDate}
-                    schedule={doctorDashboardData.schedule}
+                    schedule={schedule}
                     onVisitClick={handleVisitInteraction}
                 />
             </div>
@@ -44,7 +64,13 @@ export default function DoctorOverview({
     );
 }
 
-const StatsGrid = ({ stats }: { stats: typeof doctorDashboardData.stats }) => (
+
+type StatItem = {
+    label: string;
+    value: number;
+};
+
+const StatsGrid = ({ stats }: { stats: StatItem[] }) => (
     <div className="grid gap-4 md:grid-cols-3">
         {stats.map((stat) => (
             <StatCard key={stat.label} label={stat.label} value={stat.value} />
@@ -60,20 +86,26 @@ const StatCard = ({ label, value }: { label: string; value: string | number }) =
 );
 
 const ScheduleSection = ({
-    date,
     schedule,
     onVisitClick,
 }: {
-    date: string;
-    schedule: VisitData[];
+    schedule: DoctorAppointment[];
     onVisitClick: (id: string) => void;
 }) => {
+    const date = Date.now();
+
+    const formattedDate = new Date(date).toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+    });
     return (
         <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
             <div className="mb-6 flex items-center justify-between">
                 <div>
                     <p className="text-sm text-slate-500">Appointment Calendar</p>
-                    <h3 className="text-2xl font-semibold text-slate-900">{date}</h3>
+                    <h3 className="text-2xl font-semibold text-slate-900">{formattedDate}</h3>
                 </div>
                 <div className="flex h-10 w-10 items-center justify-center rounded-full shrink-0 bg-slate-50">
                     <CalendarDays className="h-5 w-5 text-slate-400 " />
@@ -97,7 +129,7 @@ const AppointmentCard = ({
     visit,
     onClick
 }: {
-    visit: VisitData;
+    visit: DoctorAppointment;
     onClick: () => void;
 }) => {
     return (
@@ -113,7 +145,7 @@ const AppointmentCard = ({
 
                     <div className="flex-1">
                         <p className="line-clamp-1 break-all font-semibold text-slate-900">
-                            {visit.patient}
+                            {visit.patientName}
                         </p>
                         <p className="text-sm text-slate-500">{visit.type}</p>
                     </div>
@@ -127,7 +159,7 @@ const AppointmentCard = ({
                     </div>
                 </div>
 
-                {visit.hasReport && (
+                {visit.hasAiReport && (
                     <span className="inline-flex shrink-0 items-center rounded-full w-fit bg-purple-100 px-2.5 py-0.5 text-xs font-bold text-purple-700">
                         AI Report
                     </span>

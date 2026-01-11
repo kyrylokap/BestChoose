@@ -1,7 +1,6 @@
 "use client";
 
 import { doctorDashboardData } from "@/data/dashboard-data";
-import type { Account } from "@/types/account";
 import InfoBadge from "../../shared/InfoBadge";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { useMemo, useState } from "react";
@@ -77,28 +76,34 @@ const AppointmentDetailsCard = ({ visit }: { visit: any }) => {
                     <ClipboardClock className="h-5 w-5" />
                 </div>
                 <div>
-                    <p className="text-xl font-semibold text-slate-900">
+                    <h2 className="text-xl font-semibold text-slate-900">
                         Selected Appointment
-                    </p>
+                    </h2>
                     <p className="text-sm text-slate-500">
                         Review AI preliminary report summary and symptoms
                     </p>
                 </div>
             </div>
 
+            <div className="grid gap-3 sm:grid-cols-3 text-sm text-slate-600">
+                <InfoBadge label="Full Name" value={visit.visitInfo.patient.name} />
+                <InfoBadge label="Age" value={visit.visitInfo.patient.age} />
+                <InfoBadge label="PESEL" value={visit.visitInfo.patient.pesel} />
+            </div>
+
             {hasReport ? (
-                <>
-                    <div className="grid gap-3 text-sm text-slate-600">
-                        <InfoBadge label="Full Name" value={visit.visitInfo.patient.name} />
-                        <InfoBadge label="Age" value={visit.visitInfo.patient.age} />
-                        <InfoBadge label="PESEL" value={visit.visitInfo.patient.pesel} />
-                    </div>
-                    <AiReportSummary report={visit.visitInfo.report} />
-                </>
+                <AiReportSummary report={visit.visitInfo.report} />
             ) : (
-                <div className="rounded-3xl border border-slate-100 bg-slate-50 p-6 text-sm text-slate-500">
-                    No AI report available for this appointment.
+                <div className="flex flex-col gap-4">
+                    <div className="grid gap-1 text-sm pl-4 text-slate-600">
+                        <div className="font-semibold text-slate-900">Reported Symptoms</div>
+                        <div>{visit.symptoms}</div>
+                    </div>
+                    <div className="rounded-3xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-500">
+                        No AI report available for this appointment.
+                    </div>
                 </div>
+
             )}
         </section>
     );
@@ -128,10 +133,6 @@ const AiReportSummary = ({ report }: { report: any }) => {
                 <div>
                     <dt className="font-semibold text-slate-900">Duration</dt>
                     <dd>{report.duration}</dd>
-                </div>
-                <div>
-                    <dt className="font-semibold text-slate-900">Additional Information</dt>
-                    <dd>{report.info}</dd>
                 </div>
             </dl>
 

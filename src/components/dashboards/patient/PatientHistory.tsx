@@ -49,7 +49,7 @@ const HistoryCard = ({ report }: { report: ReportItem }) => {
           <FileDown className="h-6 w-6" />
         </div>
         <div>
-          <p className="font-semibold text-slate-900">{report.title}</p>
+          <p className="font-semibold text-slate-900">{report.symptoms}</p>
           <div className="mt-1 flex items-center gap-2 text-sm text-slate-500">
             <Calendar className="h-3.5 w-3.5" />
             <span>{report.date} · {report.time}</span>s

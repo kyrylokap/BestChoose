@@ -19,6 +19,7 @@ export const patientPortalData = {
       targetView: "history",
     },
   ],
+  subtitle: "Manage appointments and view reports"
 };
 
 export const patientInterview = {
@@ -36,19 +37,11 @@ export const patientInterview = {
 };
 
 export const doctorDashboardData = {
-  stats: [
-    { label: "Visits Today", value: "8", accent: "bg-blue-100 text-blue-600" },
-    {
-      label: "With AI Report",
-      value: "5",
-      accent: "bg-purple-100 text-purple-600",
-    },
-    {
-      label: "Patients",
-      value: "156",
-      accent: "bg-emerald-100 text-emerald-600",
-    },
-  ],
+  stats: {
+    labelAppointments: "Appointments Today",
+    labelReports: "Appointments with AI Report",
+    labelPatients: "Total Patients",
+  },
   scheduleDate: "Tuesday, November 25, 2025",
   schedule: [
     {
@@ -91,6 +84,13 @@ export const doctorDashboardData = {
       aiSuggestion: null,
       tests: ["CRP"],
       confidence: null,
+      visitInfo: {
+        patient: {
+          name: "Jan Kowalski",
+          age: "35 years",
+          pesel: "85010112345",
+        },
+      },
     },
     {
       id: "visit-3",
