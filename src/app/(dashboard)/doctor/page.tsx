@@ -2,7 +2,7 @@
 
 import InfoBadge from "@/components/shared/InfoBadge";
 import { doctorDashboardData } from "@/data/dashboard-data";
-import type { Account } from "@/types/account";
+import { useAuth } from "@/hooks/useAuth";
 import {
   CalendarDays,
   CheckCircle2,
@@ -14,6 +14,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 export default function DoctorDashboard() {
+  const { logOut } = useAuth();
+
   const [diagnosis, setDiagnosis] = useState("");
   const [aiRating, setAiRating] = useState<"accurate" | "inaccurate" | null>(
     null
@@ -50,7 +52,7 @@ export default function DoctorDashboard() {
         </div>
         <Link
           href={"/login"}
-          //   onClick={onLogout}
+          onClick={logOut}
           className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-white"
         >
           <LogOut className="h-4 w-4" />

@@ -6,7 +6,7 @@ import {
   patientInterviewHistory,
   patientPortalData,
 } from "@/data/dashboard-data";
-import type { Account } from "@/types/account";
+import { useAuth } from "@/hooks/useAuth";
 import {
   ArrowLeft,
   Bot,
@@ -30,14 +30,13 @@ type ChatMessage = {
 };
 
 export default function PatientDashboard() {
-  //   const firstName = user.name.split(" ")[0];
+  const { logOut } = useAuth();
   const [view, setView] = useState<PatientView>("overview");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(
     patientInterview.initialMessages
   );
   const [chatInput, setChatInput] = useState("");
   const [isResponding, setIsResponding] = useState(false);
-
   const handleSendMessage = () => {
     if (!chatInput.trim()) return;
 
@@ -111,6 +110,7 @@ export default function PatientDashboard() {
         </div>
         <Link
           href={"/login"}
+          onClick={logOut}
           className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-white"
         >
           <LogOut className="h-4 w-4" />
@@ -121,7 +121,7 @@ export default function PatientDashboard() {
       {view === "overview" && (
         <>
           <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-            <div className="rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-6 shadow-sm">
+            <div className="rounded-3xl border border-blue-100 bg-linear-to-br from-blue-50 to-white p-6 shadow-sm">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm font-semibold text-blue-600">
