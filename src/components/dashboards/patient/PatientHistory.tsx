@@ -3,7 +3,8 @@
 import { useSession } from "@/components/hoc/AuthSessionProvider";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { ReportItem, usePatient } from "@/hooks/usePatient";
-import { Calendar, CheckCircle2, FileDown } from "lucide-react";
+import { Calendar, CheckCircle2, File } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -16,19 +17,22 @@ export default function PatientReportHistory() {
   const [reports, setReports] = useState<ReportItem[]>([]);
   const { getReports } = usePatient(session?.user?.id);
   useEffect(() => {
+    let isMounted = true;
+
     const loadData = async () => {
       const data = await getReports();
-      setReports(data);
+      if (isMounted) setReports(data);
     };
 
     loadData();
-  }, [session, getReports]);
+    return () => { isMounted = false; };
+  }, [getReports]);
 
   return (
     <section className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
       <SectionHeader
         title="Consultation History"
-        subtitle="Archive of completed AI preliminary diagnoses"
+        subtitle="Archive of completed preliminary diagnoses"
         onBack={() => router.back()}
       />
 
@@ -49,22 +53,21 @@ export default function PatientReportHistory() {
 
 
 const HistoryCard = ({ report }: { report: ReportItem }) => {
-  const handleDownload = async (e: React.MouseEvent) => { };
 
   return (
-    <div
-      onClick={handleDownload}
-      className="group cursor-pointer flex flex-col gap-4 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm transition hover:border-blue-100 hover:shadow-md sm:flex-row sm:items-center sm:justify-between">
-
+    <Link
+      href={`/patient/history/report/${report.appointment_id}`}
+      className="group cursor-pointer flex flex-col gap-4 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm transition hover:border-blue-100 hover:shadow-md sm:flex-row sm:items-center sm:justify-between"
+    >
       <div className="flex items-start gap-4">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-50 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600 transition">
-          <FileDown className="h-6 w-6" />
+          <File className="h-6 w-6" />
         </div>
         <div>
           <p className="font-semibold text-slate-900">{report.symptoms}</p>
           <div className="mt-1 flex items-center gap-2 text-sm text-slate-500">
             <Calendar className="h-3.5 w-3.5" />
-            <span>{report.date} · {report.time}</span>s
+            <span>{report.date} · {report.time}</span>
           </div>
         </div>
       </div>
@@ -73,7 +76,7 @@ const HistoryCard = ({ report }: { report: ReportItem }) => {
         <CheckCircle2 className="h-3.5 w-3.5" />
         <span>{report.status}</span>
       </div>
-    </div>
+    </Link>
   )
 };
 

@@ -15,13 +15,16 @@ export const AppointmentList = ({
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const { getAppointments } = usePatient(session?.user?.id);
   useEffect(() => {
+    let isMounted = true;
+
     const loadData = async () => {
       const data = await getAppointments(appointmentsFilter);
-      setAppointments(data);
+      if (isMounted) setAppointments(data);
     };
 
     loadData();
-  }, [session, getAppointments]);
+    return () => { isMounted = false; };
+  }, [getAppointments]);
 
   if (appointments.length === 0) {
     return (

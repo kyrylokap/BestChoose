@@ -1,6 +1,8 @@
 import { useCallback } from "react";
 import { supabase } from "@/api/supabase";
 
+
+
 export type DoctorAppointment = {
     id: string;
     time: string;
@@ -17,23 +19,13 @@ export type DashboardStats = {
     aiReports: number;
 };
 
-export type AiReportDetails = {
+export type VisitCompletionData = {
     appointmentId: string;
-    symptoms: string;
-    patient: {
-        firstName: string;
-        lastName: string;
-        pesel: string;
-        age: number;
-    };
-    report: {
-        confidence: number;
-        recommended_specializations: string;
-        duration: string | null;
-        suggestion: string;
-        summary: string;
-    } | null;
+    diagnosis: string;
+    aiRating: 'accurate' | 'inaccurate' | null;
 };
+
+
 
 export const useDoctor = (userId: string | undefined) => {
 
@@ -44,7 +36,6 @@ export const useDoctor = (userId: string | undefined) => {
             const data = await fetchTodayAppointments(userId);
             return data;
         } catch (error) {
-            console.error("Error fetching upcoming appointments:", error);
             return [];
         }
     }, [userId]);
@@ -71,34 +62,55 @@ export const useDoctor = (userId: string | undefined) => {
         }
     }, [userId]);
 
-    const getReportAiDetails = useCallback(async (appointmentId: string): Promise<AiReportDetails | null> => {
+    const completeVisit = useCallback(async (data: VisitCompletionData): Promise<boolean> => {
         try {
-            const data = await fetchReportAiDetails(appointmentId);
-            return data;
+            await saveDoctorDiagnosis(data);
+            return true;
         } catch (error) {
-            console.error("Error fetching AI report:", error);
-            return null;
+            console.error("Error saving diagnosis:", error);
+            return false;
         }
-    }, [userId]);
+    }, []);
 
-    return { getUpcomingAppointments, getStats, getReportAiDetails };
+    const getIsReport = useCallback(async (appointmentId: string): Promise<boolean> => {
+        try {
+            return await checkReportExists(appointmentId);
+        } catch (error) {
+            return false;
+        }
+    }, []);
+
+    return {
+        getUpcomingAppointments,
+        getStats,
+        completeVisit,
+        getIsReport
+    };
+};
+
+const getTodayRangeISO = () => {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+
+    return {
+        todayStartIso: start.toISOString(),
+        todayEndIso: end.toISOString()
+    };
 };
 
 
 
 const fetchTodayAppointmentsCount = async (doctorId: string) => {
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-
-    const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59, 999);
+    const { todayStartIso, todayEndIso } = getTodayRangeISO();
 
     const { count, error } = await supabase
         .from("appointments")
         .select("*", { count: "exact", head: true })
         .eq("doctor_id", doctorId)
-        .gte("scheduled_time", todayStart.toISOString())
-        .lte("scheduled_time", todayEnd.toISOString());
+        .gte("scheduled_time", todayStartIso)
+        .lte("scheduled_time", todayEndIso);
 
     if (error) console.error('Error today appointments:', error);
 
@@ -129,15 +141,10 @@ const fetchAppointmentsWithAI = async (doctorId: string) => {
 
 
 
-
 const fetchTodayAppointments = async (
     doctorId: string
 ): Promise<DoctorAppointment[]> => {
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-
-    const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59, 999);
+    const { todayStartIso, todayEndIso } = getTodayRangeISO();
 
     const { data, error } = await supabase
         .from("appointments")
@@ -151,8 +158,8 @@ const fetchTodayAppointments = async (
                 reports (ai_suggestion)
         `)
         .eq("doctor_id", doctorId)
-        .gte("scheduled_time", todayStart.toISOString())
-        .lte("scheduled_time", todayEnd.toISOString())
+        .gte("scheduled_time", todayStartIso)
+        .lte("scheduled_time", todayEndIso)
         .order("scheduled_time", { ascending: true });
 
     if (error) {
@@ -171,7 +178,6 @@ const formatTodayAppointment = (item: any): DoctorAppointment => {
 
     const dateObj = new Date(item.scheduled_time);
 
-
     return {
         id: item.id,
         time: dateObj.toLocaleTimeString('en-US', {
@@ -187,80 +193,54 @@ const formatTodayAppointment = (item: any): DoctorAppointment => {
 
 
 
-
-export const fetchReportAiDetails = async (
-    appointmentId: string
-): Promise<AiReportDetails | null> => {
-
-    const { data, error } = await supabase
+const saveDoctorDiagnosis = async ({ appointmentId, diagnosis, aiRating }: VisitCompletionData) => {
+    const { error: appointmentError } = await supabase
         .from("appointments")
-        .select(`
-                id,
-                symptoms,
-                profiles!patient_id (
-                    first_name,
-                    last_name,
-                    pesel,
-                    date_of_birth
-                ),
-                reports (
-                    ai_confidence_score,
-                    ai_recommended_specializations,
-                    sickness_duration,
-                    ai_suggestion,
-                    ai_summary
-                )
-        `)
+        .update({
+            status: "Finished",
+            doctor_final_diagnosis: diagnosis,
+        })
+        .eq("id", appointmentId);
+
+    if (appointmentError) throw appointmentError;
+
+
+    const { data: appointment, error: fetchError } = await supabase
+        .from("appointments")
+        .select("report_id")
         .eq("id", appointmentId)
         .single();
 
-    if (error) {
-        console.error("Error fetching raport AI details:", error);
-        return null;
+    if (fetchError) {
+        throw new Error("No report associated with the visit was found");
     }
 
-    if (!data) return null;
 
-    return formatReport(data)
+    if (appointment?.report_id) {
+        const { error: reportError } = await supabase
+            .from("reports")
+            .update({
+                doctor_feedback_ai_rating: aiRating,
+                status: "Completed"
+            })
+            .eq("id", appointment.report_id);
+
+        if (reportError) throw reportError;
+    }
+
 };
 
-const formatReport = (data: any): AiReportDetails => {
-    const patient = Array.isArray(data.profiles) ? data.profiles[0] : data.profiles;
-    const report = Array.isArray(data.reports) ? data.reports[0] : data.reports;
+const checkReportExists = async (appointmentId: string): Promise<boolean> => {
+    const { data, error } = await supabase
+        .from('appointments')
+        .select('report_id')
+        .eq('id', appointmentId)
+        .maybeSingle();
 
-    return {
-        appointmentId: data.id,
-        symptoms: data.symptoms,
-        patient: {
-            firstName: patient?.first_name,
-            lastName: patient?.last_name,
-            pesel: patient?.pesel,
-            age: calculateAge(patient?.date_of_birth),
-        },
-        report: report
-            ? {
-                confidence: report.ai_confidence_score,
-                recommended_specializations: report.ai_recommended_specializations,
-                duration: report.sickness_duration,
-                suggestion: report.ai_suggestion,
-                summary: report.ai_summary,
-            }
-            : null,
-    };
-}
-
-const calculateAge = (dateOfBirth: string): number => {
-    if (!dateOfBirth) return 0;
-
-    const birthDate = new Date(dateOfBirth);
-    const today = new Date();
-
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
+    if (error || !data) {
+        console.error('Report checking error:', error);
+        return false;
     }
 
-    return age;
+    return !!data.report_id;
 };

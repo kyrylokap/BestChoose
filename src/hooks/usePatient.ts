@@ -15,6 +15,7 @@ export type Appointment = {
 
 export type ReportItem = {
     id: string;
+    appointment_id: string;
     date: string;
     time: string
     symptoms: string;
@@ -115,6 +116,7 @@ export const fetchReports = async (userId: string) => {
                 id, 
                 status,
                 appointments (
+                    id,
                     symptoms,
                     scheduled_time
                 )
@@ -139,6 +141,7 @@ const formatReport = (item: any): ReportItem => {
 
     return {
         id: item.id,
+        appointment_id: appointment?.id,
         symptoms: appointment?.symptoms || 'No data on symptoms',
         date: dateObj.toLocaleDateString('en-US', {
             year: 'numeric', month: 'long', day: 'numeric'

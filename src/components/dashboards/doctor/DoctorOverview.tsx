@@ -22,15 +22,19 @@ export default function DoctorOverview() {
     const [stats, setStats] = useState<DashboardStats | null>(null);
 
     useEffect(() => {
+        let isMounted = true;
         const loadData = async () => {
             const appointmentsData = await getUpcomingAppointments();
             const statsData = await getStats();
 
-            setSchedule(appointmentsData);
-            if (statsData) setStats(statsData);
+            if (isMounted) {
+                setSchedule(appointmentsData);
+                if (statsData) setStats(statsData);
+            }
         };
 
         loadData();
+        return () => { isMounted = false; };
     }, [session, getUpcomingAppointments, getStats]);
 
     const handleVisitInteraction = (visitId: string) => {
@@ -96,14 +100,17 @@ const ScheduleSection = ({
     schedule: DoctorAppointment[];
     onVisitClick: (id: string) => void;
 }) => {
-    const date = Date.now();
+    const [formattedDate, setFormattedDate] = useState<string>("");
 
-    const formattedDate = new Date(date).toLocaleDateString("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-    });
+    useEffect(() => {
+        setFormattedDate(new Date().toLocaleDateString("en-US", {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+        }));
+    }, []);
+
     return (
         <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
             <div className="mb-6 flex items-center justify-between">
@@ -116,15 +123,21 @@ const ScheduleSection = ({
                 </div>
             </div>
 
-            <div className="mt-6 space-y-4">
-                {schedule.map((visit) => (
-                    <AppointmentCard
-                        key={visit.id}
-                        visit={visit}
-                        onClick={() => onVisitClick(visit.id)}
-                    />
-                ))}
-            </div>
+            {schedule.length > 0 ? (
+                <div className="mt-6 space-y-4">
+                    {schedule.map((visit) => (
+                        <AppointmentCard
+                            key={visit.id}
+                            visit={visit}
+                            onClick={() => onVisitClick(visit.id)}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <div className="rounded-3xl bg-slate-50 p-8 text-center text-slate-500">
+                    No appointments scheduled for today
+                </div>
+            )}
         </section>
     );
 };
