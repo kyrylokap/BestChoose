@@ -2,14 +2,9 @@
 
 import { AppointmentList } from "@/components/shared/AppointmentList";
 import { SectionHeader } from "@/components/shared/SectionHeader";
-import { Appointment } from "@/lib/services/appointment-service";
 import { useRouter } from "next/navigation";
 
-type Props = {
-  appointments: Appointment[];
-};
-
-export default function PatientVisits({ appointments }: Props) {
+export default function PatientVisits() {
   const router = useRouter();
 
   return (
@@ -20,7 +15,7 @@ export default function PatientVisits({ appointments }: Props) {
         onBack={() => router.back()}
       />
       <div className="mt-4">
-        <AppointmentList appointments={appointments} />
+        <AppointmentList appointmentsFilter={'all'} />
       </div>
     </section>
   );

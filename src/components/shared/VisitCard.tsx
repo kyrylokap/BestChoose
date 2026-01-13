@@ -1,4 +1,4 @@
-import { Appointment } from "@/lib/services/appointment-service";
+import { Appointment } from "@/hooks/usePatient";
 import { Calendar, Clock, MapPin, User } from "lucide-react";
 
 

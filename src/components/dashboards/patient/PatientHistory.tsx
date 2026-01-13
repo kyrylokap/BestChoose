@@ -1,16 +1,28 @@
 "use client"
 
-import { ReportItem } from "@/app/(dashboard)/patient/history/page";
+import { useSession } from "@/components/hoc/AuthSessionProvider";
 import { SectionHeader } from "@/components/shared/SectionHeader";
+import { ReportItem, usePatient } from "@/hooks/usePatient";
 import { Calendar, CheckCircle2, FileDown } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-type Props = {
-  reports: ReportItem[]
-};
 
-export default function PatientReportHistory({ reports }: Props) {
+export default function PatientReportHistory() {
   const router = useRouter();
+
+  const { session } = useSession();
+
+  const [reports, setReports] = useState<ReportItem[]>([]);
+  const { getReports } = usePatient(session?.user?.id);
+  useEffect(() => {
+    const loadData = async () => {
+      const data = await getReports();
+      setReports(data);
+    };
+
+    loadData();
+  }, [session, getReports]);
 
   return (
     <section className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -22,8 +34,8 @@ export default function PatientReportHistory({ reports }: Props) {
 
       <div className="flex flex-col gap-3">
         {reports.length > 0 ? (
-          reports.map((item) => (
-            <HistoryCard key={item.id} report={item} />
+          reports.map((report) => (
+            <HistoryCard key={report.id} report={report} />
           ))
         ) : (
           <div className="rounded-3xl bg-slate-50 p-8 text-center text-slate-500">

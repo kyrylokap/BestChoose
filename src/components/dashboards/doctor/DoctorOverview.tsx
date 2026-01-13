@@ -1,6 +1,5 @@
 "use client";
 
-import { DoctorAppointment } from "@/app/(dashboard)/doctor/page";
 import DashboardHeader from "../DashboardHeader";
 import {
     CalendarDays,
@@ -8,49 +7,54 @@ import {
     User,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { DashboardStats, DoctorAppointment, useDoctor } from "@/hooks/useDoctor";
+import { useSession } from "@/components/hoc/AuthSessionProvider";
+import { useEffect, useMemo, useState } from "react";
 
 
-
-type DoctorOverviewProps = {
-    user: any;
-    stats: {
-        todayAppointments: number,
-        totalPatients: number,
-        aiReports: number
-    }
-    schedule: DoctorAppointment[]
-};
-
-
-export default function DoctorOverview({
-    user,
-    stats,
-    schedule
-}: DoctorOverviewProps) {
+export default function DoctorOverview() {
     const router = useRouter();
+
+    const { session } = useSession();
+    const { getUpcomingAppointments, getStats } = useDoctor(session?.user?.id);
+
+    const [schedule, setSchedule] = useState<DoctorAppointment[]>([]);
+    const [stats, setStats] = useState<DashboardStats | null>(null);
+
+    useEffect(() => {
+        const loadData = async () => {
+            const appointmentsData = await getUpcomingAppointments();
+            const statsData = await getStats();
+
+            setSchedule(appointmentsData);
+            if (statsData) setStats(statsData);
+        };
+
+        loadData();
+    }, [session, getUpcomingAppointments, getStats]);
 
     const handleVisitInteraction = (visitId: string) => {
         router.push(`/doctor/visit/${visitId}`);
     };
 
-    const statsList = [
+    const statsList = useMemo(() => [
         {
             label: "Appointments Today",
-            value: stats.todayAppointments,
+            value: stats?.todayAppointments ?? 0,
         },
         {
             label: "Appointments with AI Report",
-            value: stats.totalPatients,
+            value: stats?.totalPatients ?? 0,
         },
         {
             label: "Total Patients",
-            value: stats.aiReports,
+            value: stats?.aiReports ?? 0,
         },
-    ];
+    ], [stats]);
 
     return (
         <section className="w-full space-y-8">
-            <DashboardHeader user={user} />
+            <DashboardHeader />
 
             <StatsGrid stats={statsList} />
 

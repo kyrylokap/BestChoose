@@ -1,9 +1,8 @@
 "use client";
 
-import { doctorDashboardData } from "@/data/dashboard-data";
 import InfoBadge from "../../shared/InfoBadge";
 import { SectionHeader } from "@/components/shared/SectionHeader";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     CheckCircle2,
     ClipboardCheck,
@@ -14,30 +13,36 @@ import {
     ThumbsUp,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useSession } from "@/components/hoc/AuthSessionProvider";
+import { AiReportDetails, useDoctor } from "@/hooks/useDoctor";
 
 
 type AiRatingType = "accurate" | "inaccurate" | null;
 
 type DoctorVisitProps = {
-    visitId: string;
+    appointmentId: string;
 };
 
 
-
 export default function DoctorVisit({
-    visitId,
+    appointmentId,
 }: DoctorVisitProps) {
     const router = useRouter();
     const [diagnosis, setDiagnosis] = useState("");
     const [aiRating, setAiRating] = useState<AiRatingType>(null);
     const [savedMessage, setSavedMessage] = useState("");
 
-    const selectedVisit = useMemo(
-        () =>
-            doctorDashboardData.schedule.find((visit) => visit.id === visitId) ??
-            doctorDashboardData.schedule[0],
-        [visitId]
-    );
+    const { session } = useSession();
+    const { getReportAiDetails } = useDoctor(session?.user?.id);
+    const [selectedAppointment, setSelectedAppointment] = useState<AiReportDetails | null>(null);
+    useEffect(() => {
+        const loadData = async () => {
+            const data = await getReportAiDetails(appointmentId);
+            setSelectedAppointment(data);
+        };
+
+        loadData();
+    }, [session, getReportAiDetails]);
 
     const handleSave = () => {
         setSavedMessage("The appointment has been saved");
@@ -51,7 +56,7 @@ export default function DoctorVisit({
                 onBack={() => router.back()}
             />
 
-            <AppointmentDetailsCard visit={selectedVisit} />
+            <ReportDetailsCard aiReportDetails={selectedAppointment} />
 
             <DiagnosisFormCard
                 diagnosis={diagnosis}
@@ -66,8 +71,14 @@ export default function DoctorVisit({
 }
 
 
-const AppointmentDetailsCard = ({ visit }: { visit: any }) => {
-    const hasReport = visit?.hasReport && visit.visitInfo;
+const ReportDetailsCard = ({ aiReportDetails }: { aiReportDetails: AiReportDetails | null }) => {
+    if (!aiReportDetails) {
+        return (
+            <div className="rounded-3xl bg-slate-50 p-8 text-center text-slate-500">
+                No loading appointment details
+            </div>
+        )
+    }
 
     return (
         <section className="flex flex-col gap-4 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
@@ -86,18 +97,18 @@ const AppointmentDetailsCard = ({ visit }: { visit: any }) => {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3 text-sm text-slate-600">
-                <InfoBadge label="Full Name" value={visit.visitInfo.patient.name} />
-                <InfoBadge label="Age" value={visit.visitInfo.patient.age} />
-                <InfoBadge label="PESEL" value={visit.visitInfo.patient.pesel} />
+                <InfoBadge label="Full Name" value={`${aiReportDetails.patient.firstName} ${aiReportDetails.patient.lastName}`} />
+                <InfoBadge label="Age" value={aiReportDetails.patient.age} />
+                <InfoBadge label="PESEL" value={aiReportDetails.patient.pesel} />
             </div>
 
-            {hasReport ? (
-                <AiReportSummary report={visit.visitInfo.report} />
+            {aiReportDetails.report ? (
+                <AiReportSummary report={aiReportDetails.report} />
             ) : (
                 <div className="flex flex-col gap-4">
                     <div className="grid gap-1 text-sm pl-4 text-slate-600">
                         <div className="font-semibold text-slate-900">Reported Symptoms</div>
-                        <div>{visit.symptoms}</div>
+                        <div>{aiReportDetails.symptoms}</div>
                     </div>
                     <div className="rounded-3xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-500">
                         No AI report available for this appointment.
@@ -134,24 +145,30 @@ const AiReportSummary = ({ report }: { report: any }) => {
                     <dt className="font-semibold text-slate-900">Duration</dt>
                     <dd>{report.duration}</dd>
                 </div>
+                <div>
+                    <dt className="font-semibold text-slate-900">Summary</dt>
+                    <dd>{report.summary}</dd>
+                </div>
             </dl>
 
-            <div className="mt-4 rounded-2xl bg-white/90 p-4">
-                <p className="text-xs uppercase text-purple-500">AI Suggestion</p>
-                <p className="text-lg font-semibold text-purple-900">
-                    {report.suggestion}
-                </p>
-            </div>
+            <div className="mt-6 space-y-3">
+                <div className="rounded-2xl bg-white/90 p-4 ring-1 ring-purple-100">
+                    <p className="text-xs font-bold uppercase tracking-wider text-purple-500">
+                        AI Diagnosis Suggestion
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-slate-800 leading-relaxed">
+                        {report.suggestion}
+                    </p>
+                </div>
 
-            <div className="mt-3 flex flex-wrap gap-2">
-                {report.tests.map((test: string) => (
-                    <span
-                        key={test}
-                        className="rounded-full border border-purple-100 bg-white px-4 py-1 text-xs font-medium text-purple-900"
-                    >
-                        {test}
-                    </span>
-                ))}
+                <div className="rounded-2xl bg-purple-600 p-4 shadow-md shadow-purple-200">
+                    <p className="text-xs font-bold uppercase tracking-wider text-purple-100">
+                        Recommended Specialization
+                    </p>
+                    <p className="mt-1 text-sm font-bold text-white">
+                        {report.recommended_specializations}
+                    </p>
+                </div>
             </div>
         </div>
     );

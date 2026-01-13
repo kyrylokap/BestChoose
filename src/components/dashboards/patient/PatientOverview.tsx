@@ -4,25 +4,21 @@ import { patientPortalData } from "@/data/dashboard-data";
 import { CalendarDays, MessageSquare, Sparkles } from "lucide-react";
 import DashboardHeader from "../DashboardHeader";
 import { useRouter } from "next/navigation";
-import { Appointment, getAppointments } from "@/lib/services/appointment-service";
 import { AppointmentList } from "@/components/shared/AppointmentList";
 
-type PatientOverviewProps = {
-  upcomingAppointments: Appointment[]
-  user: any;
-};
 
-export default function PatientOverview({ upcomingAppointments, user }: PatientOverviewProps) {
+export default function PatientOverview() {
   const router = useRouter();
-  const quickActions = patientPortalData.quickActions;
 
   const handleNavigate = (view: string) => {
     router.push(`/patient/${view}`);
   };
 
+  const quickActions = patientPortalData.quickActions;
+
   return (
     <div className="space-y-6">
-      <DashboardHeader user={user} />
+      <DashboardHeader />
 
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <AiAssistantCard onStart={() => router.push("/patient/interview")} />
@@ -33,7 +29,7 @@ export default function PatientOverview({ upcomingAppointments, user }: PatientO
         />
       </div>
 
-      <UpcomingVisitCards upcomingAppointments={upcomingAppointments} />
+      <UpcomingVisitCards />
     </div>
   );
 }
@@ -91,11 +87,7 @@ const QuickActionsList = ({
   </div>
 );
 
-const UpcomingVisitCards = ({
-  upcomingAppointments,
-}: {
-  upcomingAppointments: Appointment[];
-}) => (
+const UpcomingVisitCards = () => (
   <section className="">
     <div className="flex items-center justify-between p-4">
       <p className="text-lg font-semibold text-slate-900">
@@ -104,7 +96,7 @@ const UpcomingVisitCards = ({
       <CalendarDays className="h-5 w-5 text-slate-400" />
     </div>
 
-    <AppointmentList appointments={upcomingAppointments} />
+    <AppointmentList appointmentsFilter={'upcoming'} />
   </section>
 )
 

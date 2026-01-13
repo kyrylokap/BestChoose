@@ -1,19 +1,32 @@
 import { VisitCard } from "@/components/shared/VisitCard";
-import { Appointment } from "@/lib/services/appointment-service";
+import { Appointment, usePatient } from "@/hooks/usePatient";
+import { useEffect, useState } from "react";
+import { useSession } from "../hoc/AuthSessionProvider";
 
 type Props = {
-  appointments: Appointment[];
-  emptyMessage?: string;
+  appointmentsFilter: 'all' | 'upcoming';
 };
 
-export const AppointmentList = ({ 
-  appointments, 
-  emptyMessage = "You currently have no scheduled appointments" 
+export const AppointmentList = ({
+  appointmentsFilter,
 }: Props) => {
+  const { session } = useSession();
+
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const { getAppointments } = usePatient(session?.user?.id);
+  useEffect(() => {
+    const loadData = async () => {
+      const data = await getAppointments(appointmentsFilter);
+      setAppointments(data);
+    };
+
+    loadData();
+  }, [session, getAppointments]);
+
   if (appointments.length === 0) {
     return (
       <div className="rounded-3xl bg-slate-50 p-8 text-center text-slate-500">
-        {emptyMessage}
+        {"You currently have no scheduled appointments"}
       </div>
     );
   }

@@ -1,12 +1,11 @@
-import { patientPortalData } from "@/data/dashboard-data";
 import { LogOut } from "lucide-react";
 import Link from "next/link";
+import { useSession } from "../hoc/AuthSessionProvider";
 
-type DashboardHeaderProps = {
-  user: any;
-};
 
-export default function DashboardHeader({ user }: DashboardHeaderProps) {
+export default function DashboardHeader() {
+  const { session } = useSession();
+
   return (
     <header className="flex flex-row items-center justify-between w-full">
       <div>
@@ -15,7 +14,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
         </span>
 
         <h2 className="text-3xl font-medium text-slate-900">
-          Hi, {user?.first_name} {user?.last_name}!
+          Hi, {session?.user?.user_metadata?.first_name} {session?.user?.user_metadata?.last_name}!
         </h2>
         <p className=" text-slate-500">
           Medical System
