@@ -44,11 +44,11 @@ export default function DoctorOverview() {
         },
         {
             label: "Appointments with AI Report",
-            value: stats?.totalPatients ?? 0,
+            value: stats?.aiReports ?? 0,
         },
         {
             label: "Total Patients",
-            value: stats?.aiReports ?? 0,
+            value: stats?.totalPatients ?? 0,
         },
     ], [stats]);
 

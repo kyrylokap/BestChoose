@@ -169,9 +169,14 @@ const formatTodayAppointment = (item: any): DoctorAppointment => {
         ? item.profiles[0]
         : item.profiles;
 
+    const dateObj = new Date(item.scheduled_time);
+
+
     return {
         id: item.id,
-        time: item.scheduled_time,
+        time: dateObj.toLocaleTimeString('en-US', {
+            hour: '2-digit', minute: '2-digit', hour12: false
+        }),
         duration: item.duration,
         type: item.visit_type,
         patientName: `${patient.first_name} ${patient.last_name}`,

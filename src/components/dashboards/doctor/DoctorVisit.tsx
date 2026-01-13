@@ -65,6 +65,7 @@ export default function DoctorVisit({
                 setAiRating={setAiRating}
                 onSave={handleSave}
                 savedMessage={savedMessage}
+                hasAiReport={!!selectedAppointment?.report}
             />
         </section>
     );
@@ -103,7 +104,7 @@ const ReportDetailsCard = ({ aiReportDetails }: { aiReportDetails: AiReportDetai
             </div>
 
             {aiReportDetails.report ? (
-                <AiReportSummary report={aiReportDetails.report} />
+                <AiReportSummary report={aiReportDetails.report} symptoms={aiReportDetails.symptoms} />
             ) : (
                 <div className="flex flex-col gap-4">
                     <div className="grid gap-1 text-sm pl-4 text-slate-600">
@@ -121,7 +122,7 @@ const ReportDetailsCard = ({ aiReportDetails }: { aiReportDetails: AiReportDetai
 };
 
 
-const AiReportSummary = ({ report }: { report: any }) => {
+const AiReportSummary = ({ report, symptoms }: { report: any, symptoms: string }) => {
     return (
         <div className="rounded-3xl border border-purple-100 bg-linear-to-br from-purple-50 to-white p-5">
             <div className="flex items-center justify-between">
@@ -139,7 +140,7 @@ const AiReportSummary = ({ report }: { report: any }) => {
             <dl className="mt-4 space-y-3 text-sm text-slate-700">
                 <div>
                     <dt className="font-semibold text-slate-900">Reported Symptoms</dt>
-                    <dd>{report.symptoms}</dd>
+                    <dd>{symptoms}</dd>
                 </div>
                 <div>
                     <dt className="font-semibold text-slate-900">Duration</dt>
@@ -161,11 +162,11 @@ const AiReportSummary = ({ report }: { report: any }) => {
                     </p>
                 </div>
 
-                <div className="rounded-2xl bg-purple-600 p-4 shadow-md shadow-purple-200">
-                    <p className="text-xs font-bold uppercase tracking-wider text-purple-100">
+                <div className="rounded-2xl bg-white/90 p-4 ring-1 ring-purple-100">
+                    <p className="text-xs font-bold uppercase tracking-wider text-purple-500">
                         Recommended Specialization
                     </p>
-                    <p className="mt-1 text-sm font-bold text-white">
+                    <p className="mt-1 text-sm font-bold text-slate-800 leading-relaxed">
                         {report.recommended_specializations}
                     </p>
                 </div>
@@ -183,6 +184,7 @@ type DiagnosisFormCardProps = {
     setAiRating: (val: AiRatingType) => void;
     onSave: () => void;
     savedMessage: string;
+    hasAiReport: boolean;
 };
 
 const DiagnosisFormCard = ({
@@ -192,6 +194,7 @@ const DiagnosisFormCard = ({
     setAiRating,
     onSave,
     savedMessage,
+    hasAiReport,
 }: DiagnosisFormCardProps) => {
     return (
         <section className="rounded-3xl bg-white p-6 shadow-lg shadow-slate-200/50 ring-1 ring-slate-100">
@@ -226,23 +229,25 @@ const DiagnosisFormCard = ({
                 />
             </div>
 
-            <div className="mt-6 rounded-2xl border border-slate-100 bg-slate-50/50 p-4">
-                <p className="mb-3 text-center text-sm font-medium text-slate-600 sm:text-left">
-                    How accurate was the AI suggestion?
-                </p>
-                <div className="flex gap-3">
-                    <AiRatingButton
-                        type="accurate"
-                        currentRating={aiRating}
-                        onClick={() => setAiRating("accurate")}
-                    />
-                    <AiRatingButton
-                        type="inaccurate"
-                        currentRating={aiRating}
-                        onClick={() => setAiRating("inaccurate")}
-                    />
+            {hasAiReport && (
+                <div className="mt-6 rounded-2xl border border-slate-100 bg-slate-50/50 p-4">
+                    <p className="mb-3 text-center text-sm font-medium text-slate-600 sm:text-left">
+                        How accurate was the AI suggestion?
+                    </p>
+                    <div className="flex gap-3">
+                        <AiRatingButton
+                            type="accurate"
+                            currentRating={aiRating}
+                            onClick={() => setAiRating("accurate")}
+                        />
+                        <AiRatingButton
+                            type="inaccurate"
+                            currentRating={aiRating}
+                            onClick={() => setAiRating("inaccurate")}
+                        />
+                    </div>
                 </div>
-            </div>
+            )}
 
             <button
                 type="button"
