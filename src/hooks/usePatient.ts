@@ -8,7 +8,7 @@ export type Appointment = {
     specialization: string;
     date: string;
     time: string;
-    duration: string;
+    duration: number;
     status: string;
     location: string;
 };
@@ -30,7 +30,6 @@ export const usePatient = (userId: string | undefined) => {
             const appointments = await fetchAppointments(userId, filter);
             return appointments;
         } catch (error) {
-            console.error("Error fetching patient appointments:", error);
             return [];
         }
     }, [userId]);
@@ -42,7 +41,6 @@ export const usePatient = (userId: string | undefined) => {
             const reports = await fetchReports(userId);
             return reports;
         } catch (error) {
-            console.error("Error fetching patient raports:", error);
             return [];
         }
     }, [userId]);
@@ -58,7 +56,11 @@ const fetchAppointments = async (userId: string, filter: 'all' | 'upcoming') => 
                 scheduled_time,
                 duration,
                 status,
-                office_location,
+                locations (
+                    name,
+                    address,
+                    city
+                ),
                 doctors (
                     specialization,
                     profiles ( first_name, last_name )
@@ -74,10 +76,8 @@ const fetchAppointments = async (userId: string, filter: 'all' | 'upcoming') => 
 
     const { data, error } = await query;
 
-    if (error || !data) {
-        console.error('Error fetching appointments:', error);
-        return [];
-    }
+    if (error) throw new Error(`Error fetching appointments: ${error.message}`);
+    if (!data) return [];
 
     return data.map(formatAppointment);
 };
@@ -88,6 +88,14 @@ const formatAppointment = (item: any): Appointment => {
     const doctorProfile = Array.isArray(item.doctors?.profiles)
         ? item.doctors.profiles[0]
         : item.doctors?.profiles;
+
+    const locationData = Array.isArray(item.locations) 
+        ? item.locations[0] 
+        : item.locations;
+
+    const locationName = locationData 
+        ? `${locationData.name}, ${locationData.address}, ${locationData.city}`
+        : 'Unknown Location';
 
     return {
         id: item.id,
@@ -104,7 +112,7 @@ const formatAppointment = (item: any): Appointment => {
 
         duration: item.duration,
         status: item.status,
-        location: item.office_location,
+        location: locationName,
     };
 };
 
@@ -124,10 +132,9 @@ export const fetchReports = async (userId: string) => {
         .eq('patient_id', userId)
         .order('scheduled_time', { referencedTable: 'appointments', ascending: false });
 
-    if (error || !reports) {
-        console.error('Error fetching raports:', error);
-        return [];
-    }
+    if (error) throw new Error(`Error fetching raports: ${error.message}`);
+
+    if (!reports) return [];
 
     return reports.map(formatReport);
 };

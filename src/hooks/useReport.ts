@@ -1,33 +1,10 @@
 import { useCallback } from "react";
 import { supabase } from "@/api/supabase";
+import { SummaryReportDetails } from "@/types/report";
 
-
-export type ReportDetails = {
-    appointmentId: string;
-    symptoms: string;
-    doctor_final_diagnosis: string | null;
-    patient: {
-        firstName: string;
-        lastName: string;
-        pesel: string;
-        age: number;
-    };
-    doctor: {
-        firstName: string;
-        lastName: string;
-    };
-    details: {
-        confidence: number;
-        recommended_specializations: string[];
-        duration: string | null;
-        suggestion: string;
-        summary: string;
-        doctor_feedback_ai_rating: string | null;
-    } | null;
-};
 
 export const useReport = (userId: string | undefined) => {
-    const getReportDetails = useCallback(async (appointmentId: string): Promise<ReportDetails | null> => {
+    const getReportDetails = useCallback(async (appointmentId: string): Promise<SummaryReportDetails | null> => {
         try {
             const data = await fetchReportDetails(appointmentId);
             return data;
@@ -43,7 +20,7 @@ export const useReport = (userId: string | undefined) => {
 
 export const fetchReportDetails = async (
     appointmentId: string
-): Promise<ReportDetails | null> => {
+): Promise<SummaryReportDetails | null> => {
 
     const { data, error } = await supabase
         .from("appointments")
@@ -67,7 +44,7 @@ export const fetchReportDetails = async (
                     ai_recommended_specializations,
                     sickness_duration,
                     ai_suggestion,
-                    ai_summary,
+                    summary,
                     doctor_feedback_ai_rating
                 ),
                 doctor_final_diagnosis
@@ -75,17 +52,13 @@ export const fetchReportDetails = async (
         .eq("id", appointmentId)
         .single();
 
-    if (error) {
-        console.error("Error fetching raport details:", error);
-        return null;
-    }
-
+    if (error) throw new Error(`Error fetching raport details: ${error.message}`);
     if (!data) return null;
 
     return formatReport(data)
 };
 
-const formatReport = (data: any): ReportDetails => {
+const formatReport = (data: any): SummaryReportDetails => {
     const patientData = Array.isArray(data.patient) ? data.patient[0] : data.patient;
     const reportData = Array.isArray(data.report) ? data.report[0] : data.report;
 
@@ -94,7 +67,7 @@ const formatReport = (data: any): ReportDetails => {
 
     return {
         appointmentId: data.id,
-        symptoms: data.symptoms,
+        reported_symptoms: data.symptoms,
         doctor_final_diagnosis: data.doctor_final_diagnosis,
         patient: {
             firstName: patientData?.first_name,
@@ -108,11 +81,11 @@ const formatReport = (data: any): ReportDetails => {
         },
         details: reportData
             ? {
-                confidence: reportData.ai_confidence_score,
-                recommended_specializations: reportData.ai_recommended_specializations,
+                ai_confidence_score: reportData.ai_confidence_score,
+                ai_recommended_specializations: reportData.ai_recommended_specializations,
                 duration: reportData.sickness_duration,
-                suggestion: reportData.ai_suggestion,
-                summary: reportData.ai_summary,
+                ai_diagnosis_suggestion: reportData.ai_suggestion,
+                summary: reportData.summary,
                 doctor_feedback_ai_rating: reportData.doctor_feedback_ai_rating,
             }
             : null,

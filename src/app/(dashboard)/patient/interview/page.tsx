@@ -1,16 +1,9 @@
-"use client";
-
-import PatientInterview from "@/components/dashboards/patient/PatientInterview"; 
-import { useRouter } from "next/navigation";
+import PatientInterview from "@/components/dashboards/patient/interview/PatientInterview";
 
 export default function InterviewPage() {
-  const router = useRouter();
-
   return (
     <div className="flex-1 w-full">
-      <PatientInterview 
-        onBack={() => router.back()} 
-      />
+      <PatientInterview />
     </div>
   );
 }

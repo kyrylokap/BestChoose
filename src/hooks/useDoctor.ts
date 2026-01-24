@@ -6,7 +6,7 @@ import { supabase } from "@/api/supabase";
 export type DoctorAppointment = {
     id: string;
     time: string;
-    duration: string;
+    duration: number;
     type: string;
     patientName: string;
     symptoms: string;
@@ -57,7 +57,6 @@ export const useDoctor = (userId: string | undefined) => {
                 aiReports: aiAppointments,
             };
         } catch (error) {
-            console.error("Error fetching doctor stats:", error);
             return null;
         }
     }, [userId]);
@@ -67,7 +66,6 @@ export const useDoctor = (userId: string | undefined) => {
             await saveDoctorDiagnosis(data);
             return true;
         } catch (error) {
-            console.error("Error saving diagnosis:", error);
             return false;
         }
     }, []);
@@ -112,7 +110,7 @@ const fetchTodayAppointmentsCount = async (doctorId: string) => {
         .gte("scheduled_time", todayStartIso)
         .lte("scheduled_time", todayEndIso);
 
-    if (error) console.error('Error today appointments:', error);
+    if (error) throw new Error(`Error today appointments: ${error.message}`);
 
     return count ?? 0;
 };
@@ -122,7 +120,7 @@ const fetchCountPatients = async (doctorId: string) => {
         doc_id: doctorId,
     });
 
-    if (error) console.error('Error AI appointments:', error);
+    if (error) throw new Error(`Error AI appointments: ${error.message}`);
 
     return (data as number) ?? 0;
 };
@@ -133,8 +131,8 @@ const fetchAppointmentsWithAI = async (doctorId: string) => {
         .select("reports!inner(id)", { count: "exact", head: true })
         .eq("doctor_id", doctorId)
         .not("reports.ai_suggestion", "is", null);
-
-    if (error) console.error('Error counting patients:', error);
+    
+    if (error) throw new Error(`Error counting patients: ${error.message}`);
 
     return count ?? 0;
 };
@@ -161,11 +159,9 @@ const fetchTodayAppointments = async (
         .gte("scheduled_time", todayStartIso)
         .lte("scheduled_time", todayEndIso)
         .order("scheduled_time", { ascending: true });
+    
+    if (error) throw new Error(`Error getting today appointments: ${error.message}`);
 
-    if (error) {
-        console.error('Error getting today appointments:', error);
-        return [];
-    }
 
     return data.map(formatTodayAppointment);
 };
@@ -211,10 +207,8 @@ const saveDoctorDiagnosis = async ({ appointmentId, diagnosis, aiRating }: Visit
         .eq("id", appointmentId)
         .single();
 
-    if (fetchError) {
-        throw new Error("No report associated with the visit was found");
-    }
 
+    if (fetchError) throw new Error(`No report associated with the visit was found: ${fetchError.message}`);
 
     if (appointment?.report_id) {
         const { error: reportError } = await supabase
@@ -237,10 +231,9 @@ const checkReportExists = async (appointmentId: string): Promise<boolean> => {
         .eq('id', appointmentId)
         .maybeSingle();
 
-    if (error || !data) {
-        console.error('Report checking error:', error);
-        return false;
-    }
+    if (error) throw new Error(`Report checking error: ${error.message}`);
+
+    if (!data) return false
 
     return !!data.report_id;
 };
