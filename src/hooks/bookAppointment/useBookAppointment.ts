@@ -1,10 +1,10 @@
 import { supabase } from "@/api/supabase";
-import { AvailabilitySlot, Doctor, FormDataState, Location } from "@/types/book_visit";
+import { AvailabilitySlot, Doctor, FormDataState, Location } from "@/types/book_appointment";
 import { AiReportData } from "@/types/report";
 import { useCallback } from "react";
 
 
-export const useBookVisit = (userId: string | undefined) => {
+export const useBookAppointment = (userId: string | undefined) => {
     const getUniqueSpecializations = useCallback(async (): Promise<string[]> => {
         try {
             return await fetchSpecializations()
@@ -66,10 +66,9 @@ const fetchSpecializations = async (): Promise<string[]> => {
         throw new Error(`Error fetching specializations: ${error.message}`);
     }
 
-    const allSpecs = data.map((d: any) => d.specialization).filter(Boolean);
-    return Array.from(new Set(allSpecs));
+    const allSpecializations = data.map((d: any) => d.specialization).filter(Boolean);
+    return Array.from(new Set(allSpecializations));
 };
-
 
 
 
@@ -142,12 +141,12 @@ export const fetchDoctors = async (locationId: string, specialization?: string):
 
     const uniqueDoctorsMap = new Map();
 
-    data.forEach((doc: any) => {
-        if (!uniqueDoctorsMap.has(doc.id)) {
-            uniqueDoctorsMap.set(doc.id, {
-                id: doc.id,
-                specialization: doc.specialization,
-                profiles: Array.isArray(doc.profiles) ? doc.profiles[0] : doc.profiles
+    data.forEach((doctor: any) => {
+        if (!uniqueDoctorsMap.has(doctor.id)) {
+            uniqueDoctorsMap.set(doctor.id, {
+                id: doctor.id,
+                specialization: doctor.specialization,
+                profiles: Array.isArray(doctor.profiles) ? doctor.profiles[0] : doctor.profiles
             });
         }
     });
@@ -179,7 +178,6 @@ const fetchAvailability = async (doctorId: string, date: string): Promise<Availa
 
     if (error) throw new Error(`Error fetching slots: ${error.message}`);
 
-
     return data as AvailabilitySlot[];
 };
 
@@ -190,7 +188,7 @@ export const submitAppointmentTransaction = async (
     formData: FormDataState,
     report: AiReportData | null
 ) => {
-    await updatePatientProfileIfNeeded(userId, formData); 
+    await updatePatientProfileIfNeeded(userId, formData);
 
     let savedReportId = null;
 
@@ -210,15 +208,15 @@ const updatePatientProfileIfNeeded = async (userId: string, formData: FormDataSt
     }
 
     const updates: any = {};
-    
+
     if (formData.pesel) updates.pesel = formData.pesel;
-    if (formData.birthDate) updates.date_of_birth = formData.birthDate; 
+    if (formData.birthDate) updates.date_of_birth = formData.birthDate;
 
     const { error } = await supabase
         .from('profiles')
         .update(updates)
         .eq('id', userId);
-    
+
     if (error) throw new Error(`Failed to update patient data: ${error.message}`);
 };
 
@@ -228,11 +226,11 @@ const insertReport = async (userId: string, report: AiReportData): Promise<strin
         .from('reports')
         .insert({
             patient_id: userId,
-            summary: report.summary,
-            ai_suggestion: report.ai_diagnosis_suggestion,
+            reported_summary: report.reported_summary,
+            ai_diagnosis_suggestion: report.ai_diagnosis_suggestion,
             ai_recommended_specializations: report.ai_recommended_specializations,
             ai_confidence_score: report.ai_confidence_score,
-            sickness_duration: report.duration,
+            sickness_duration: report.sickness_duration,
             status: 'Sent to doctor'
         })
         .select('id')
@@ -241,8 +239,6 @@ const insertReport = async (userId: string, report: AiReportData): Promise<strin
     if (error) throw new Error(`Failed to save the report: ${error.message}`);
     return data.id;
 };
-
-
 
 
 const insertAppointment = async (userId: string, formData: FormDataState, reportId: string | null) => {
@@ -256,7 +252,7 @@ const insertAppointment = async (userId: string, formData: FormDataState, report
             location_id: formData.locationId,
             report_id: reportId,
             visit_type: formData.visitType,
-            symptoms: formData.symptoms,
+            reported_symptoms: formData.reportedSymptoms,
             scheduled_time: formData.selectedTimeSlot,
             status: 'Pending',
             duration: duration

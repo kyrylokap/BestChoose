@@ -3,7 +3,7 @@ export type FormDataState = {
     lastName: string;
     pesel: string;
     birthDate: string;
-    symptoms: string;
+    reportedSymptoms: string;
     visitType: string;
     specialization: string;
     locationId: string;

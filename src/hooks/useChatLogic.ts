@@ -4,12 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 
 const API_URL = "http://localhost:8000/ask";
 
-const getCurrentTime = () => 
+const getCurrentTime = () =>
   new Date().toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" });
 
 const createMessage = (
-  role: "user" | "assistant", 
-  text: string, 
+  role: "user" | "assistant",
+  text: string,
   attachments: string[] = []
 ): ChatMessage => ({
   id: Date.now().toString(),
@@ -29,7 +29,6 @@ export function useChatLogic() {
   const [aiReport, setAiReport] = useState<AiReportData | null>(null);
 
 
-
   const loadSession = useCallback(() => {
     const savedData = sessionStorage.getItem("chatSession");
     if (!savedData) return;
@@ -45,10 +44,10 @@ export function useChatLogic() {
 
   const saveSession = useCallback(() => {
     if (chatMessages.length === 0) return;
-    const sessionData = { 
-        messages: chatMessages, 
-        report: aiReport, 
-        isComplete: isInterviewComplete 
+    const sessionData = {
+      messages: chatMessages,
+      report: aiReport,
+      isComplete: isInterviewComplete
     };
     sessionStorage.setItem("chatSession", JSON.stringify(sessionData));
   }, [chatMessages, aiReport, isInterviewComplete]);
@@ -80,20 +79,20 @@ export function useChatLogic() {
   const handleUserMessage = () => {
     const attachmentUrls = selectedFiles.map((file) => URL.createObjectURL(file));
     const userMessage = createMessage("user", chatInput.trim(), attachmentUrls);
-    
+
     setChatMessages((prev) => [...prev, userMessage]);
-    
+
     const payloadToSend = { text: chatInput, files: [...selectedFiles] };
 
     setChatInput("");
     setSelectedFiles([]);
-    
+
     return payloadToSend;
   };
 
   const handleAiSuccess = (data: ApiResponse) => {
     let aiText = data.message || "Brak odpowiedzi.";
-    
+
     if (data.status === "complete" && data.report) {
       setAiReport(data.report);
       setIsInterviewComplete(true);
@@ -106,11 +105,10 @@ export function useChatLogic() {
   };
 
   const handleAiError = (error: unknown) => {
-   console.error("Failed to send message:", error);
+    console.error("Failed to send message:", error);
     const errorMsg = createMessage("assistant", "I apologize, but the message failed to send. Please try again.");
     setChatMessages((prev) => [...prev, errorMsg]);
   };
-
 
 
 
@@ -163,7 +161,7 @@ async function fetchChatResponse(message: string, history: ChatMessage[], files:
   files.forEach((file) => formData.append("images", file));
 
   const response = await fetch(API_URL, { method: "POST", body: formData });
-  
+
   if (!response.ok) {
     throw new Error(`API Error: ${response.statusText}`);
   }

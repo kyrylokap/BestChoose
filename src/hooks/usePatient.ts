@@ -3,8 +3,8 @@ import { supabase } from "@/api/supabase";
 
 export type Appointment = {
     id: string;
-    first_name: string;
-    last_name: string;
+    firstName: string;
+    lastName: string;
     specialization: string;
     date: string;
     time: string;
@@ -15,10 +15,10 @@ export type Appointment = {
 
 export type ReportItem = {
     id: string;
-    appointment_id: string;
+    appointmentId: string;
     date: string;
     time: string
-    symptoms: string;
+    reportedSymptoms: string;
     status: string;
 }
 
@@ -89,18 +89,18 @@ const formatAppointment = (item: any): Appointment => {
         ? item.doctors.profiles[0]
         : item.doctors?.profiles;
 
-    const locationData = Array.isArray(item.locations) 
-        ? item.locations[0] 
+    const locationData = Array.isArray(item.locations)
+        ? item.locations[0]
         : item.locations;
 
-    const locationName = locationData 
+    const locationName = locationData
         ? `${locationData.name}, ${locationData.address}, ${locationData.city}`
         : 'Unknown Location';
 
     return {
         id: item.id,
-        first_name: doctorProfile?.first_name || '',
-        last_name: doctorProfile?.last_name || '',
+        firstName: doctorProfile?.first_name || '',
+        lastName: doctorProfile?.last_name || '',
         specialization: item.doctors?.specialization || '',
 
         date: dateObj.toLocaleDateString('en-US', {
@@ -125,12 +125,13 @@ export const fetchReports = async (userId: string) => {
                 status,
                 appointments (
                     id,
-                    symptoms,
-                    scheduled_time
+                    reported_symptoms,
+                    scheduled_time,
+                    created_at
                 )
         `)
         .eq('patient_id', userId)
-        .order('scheduled_time', { referencedTable: 'appointments', ascending: false });
+        .order('created_at', { referencedTable: 'appointments', ascending: false });
 
     if (error) throw new Error(`Error fetching raports: ${error.message}`);
 
@@ -148,8 +149,8 @@ const formatReport = (item: any): ReportItem => {
 
     return {
         id: item.id,
-        appointment_id: appointment?.id,
-        symptoms: appointment?.symptoms || 'No data on symptoms',
+        appointmentId: appointment?.id,
+        reportedSymptoms: appointment?.reported_symptoms || 'No data on symptoms',
         date: dateObj.toLocaleDateString('en-US', {
             year: 'numeric', month: 'long', day: 'numeric'
         }),

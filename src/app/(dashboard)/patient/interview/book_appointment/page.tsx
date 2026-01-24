@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     Calendar, MapPin, User, Stethoscope,
@@ -9,16 +9,17 @@ import {
 } from 'lucide-react';
 import { useSession } from '@/components/hoc/AuthSessionProvider';
 import { AiReportData } from '@/types/report';
-import { useBookVisit } from '@/hooks/useBookVisit';
-import { AvailabilitySlot, Doctor, FormDataState, Location } from '@/types/book_visit';
+import { AvailabilitySlot, Doctor, FormDataState, Location } from '@/types/book_appointment';
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { useChatLogic } from '@/hooks/useChatLogic';
+import { useAppointmentForm } from '@/hooks/bookAppointment/useAppointmentForm';
+import { useAppointmentData } from '@/hooks/bookAppointment/useAppointmentData';
 
 
 const VISIT_TYPES = ["Sick visit", "Follow-up", "Consultation", "Appointment", "Referral"];
 
 
-export default function AppointmentPage() {
+export default function BookAppointmentPage() {
     const router = useRouter();
     const { session } = useSession();
 
@@ -35,7 +36,7 @@ export default function AppointmentPage() {
     const { clearHistory } = useChatLogic();
 
     const handleSubmit = async () => {
-        if (!isFormComplete) { 
+        if (!isFormComplete) {
             return;
         }
 
@@ -100,132 +101,6 @@ export default function AppointmentPage() {
             </div>
         </section>
     );
-}
-
-
-
-function useAppointmentForm(user: any) {
-    const [formData, setFormData] = useState<FormDataState>({
-        firstName: '', lastName: '', pesel: '', birthDate: '',
-        symptoms: '', visitType: 'Consultation', specialization: '',
-        locationId: '', doctorId: '', selectedDate: '', selectedTimeSlot: null,
-    });
-    const [aiReport, setAiReport] = useState<AiReportData | null>(null);
-    const [locationQuery, setLocationQuery] = useState('');
-
-    const updateField = (name: string, value: any) => {
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
-
-
-    const isFormComplete = useMemo(() => {
-        return Object.values(formData).every(val => val !== '' && val !== null);
-    }, [formData]);
-
-
-    useEffect(() => {
-        const savedReport = localStorage.getItem('medicalReport');
-        if (savedReport) {
-            try {
-                const parsed = JSON.parse(savedReport);
-                setAiReport(parsed);
-                setFormData(prev => ({
-                    ...prev,
-                    symptoms: parsed.reported_symptoms || prev.symptoms
-                }));
-            } catch (e) { console.error("Error parsing report", e); }
-        }
-    }, []);
-
-    useEffect(() => {
-        if (user?.user_metadata) {
-            const { first_name, last_name, pesel, date_of_birth } = user.user_metadata;
-            setFormData(prev => ({
-                ...prev,
-                firstName: first_name || '',
-                lastName: last_name || '',
-                pesel: pesel || '',
-                birthDate: date_of_birth || '',
-            }));
-        }
-    }, [user]);
-
-    return { formData, setFormData, updateField, isFormComplete, aiReport, locationQuery, setLocationQuery };
-}
-
-function useAppointmentData(formData: FormDataState, locationQuery: string, userId?: string) {
-    const { getUniqueSpecializations, getLocations, getDoctors, getAvailability, bookAppointment } = useBookVisit(userId);
-
-    const [specializations, setSpecializations] = useState<string[]>([]);
-    const [locations, setLocations] = useState<Location[]>([]);
-    const [doctors, setDoctors] = useState<Doctor[]>([]);
-    const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
-
-
-    useEffect(() => {
-        let isMounted = true;
-
-        const loadData = async () => {
-            const data = await getUniqueSpecializations();
-            if (isMounted) setSpecializations(data);
-        };
-
-        loadData();
-        return () => { isMounted = false; };
-    }, [getUniqueSpecializations]);
-
-
-    useEffect(() => {
-        let isMounted = true;
-
-        const isLocationSelected = !!formData.locationId;
-
-        if (isLocationSelected) {
-            setLocations([]);
-            return;
-        }
-
-        const loadData = async () => {
-            const data = await getLocations(formData?.specialization, locationQuery);
-            if (isMounted) setLocations(data);
-        };
-
-        loadData();
-        return () => { isMounted = false; };
-    }, [getLocations, locationQuery, formData.specialization, formData.locationId]);
-
-
-    useEffect(() => {
-        let isMounted = true;
-
-        const loadData = async () => {
-            if (formData.locationId) {
-                const data = await getDoctors(formData.locationId, formData.specialization);
-                if (isMounted) setDoctors(data);
-            }
-        };
-
-        loadData();
-        return () => { isMounted = false; };
-    }, [getDoctors, formData.locationId, formData.specialization]);
-
-
-    useEffect(() => {
-        let isMounted = true;
-
-
-        const loadData = async () => {
-            if (formData.selectedDate) {
-                const data = await getAvailability(formData.doctorId, formData.selectedDate);
-                if (isMounted) setSlots(data);
-            }
-        };
-
-        loadData();
-        return () => { isMounted = false; };
-    }, [getAvailability, formData.doctorId, formData.selectedDate]);
-
-    return { specializations, locations, doctors, slots, bookAppointment };
 }
 
 
@@ -303,7 +178,7 @@ const InputField = ({ label, name, value, onChange, type = "text" }: any) => (
             name={name}
             value={value}
             onChange={onChange}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-sm text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
         />
     </div>
 );
@@ -347,14 +222,14 @@ const MedicalInfoSection = ({ formData, updateField, specializations, aiReport }
                 <div>
                     <div className="flex justify-between items-center mb-1">
                         <label className="block text-xs font-medium text-slate-500">Symptoms / Problem description</label>
-                        {aiReport?.summary && <span className="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">AI Auto-filled</span>}
+                        {aiReport?.reported_summary && <span className="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">AI Auto-filled</span>}
                     </div>
                     <textarea
                         name="symptoms"
                         rows={3}
-                        value={formData.symptoms}
+                        value={formData.reportedSymptoms}
                         onChange={handleInputChange}
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-900 focus:border-blue-500 outline-none resize-none"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-slate-900 focus:border-blue-500 outline-none resize-none"
                         placeholder="Describe what’s bothering you…"
                     />
                 </div>
@@ -474,7 +349,7 @@ const LocationAndDoctorSection = ({
                                 setFormData((prev: FormDataState) => ({ ...prev, locationId: '' }));
                             }}
                             onFocus={() => setIsLocationDropdownOpen(true)}
-                            className="w-full rounded-xl border border-slate-200 bg-white p-2.5 pl-9 text-sm text-slate-900 focus:border-blue-500 outline-none"
+                            className="w-full rounded-xl border border-slate-200 bg-white p-2.5 pl-9 text-slate-900 focus:border-blue-500 outline-none"
                         />
                         <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                     </div>

@@ -9,7 +9,7 @@ export type DoctorAppointment = {
     duration: number;
     type: string;
     patientName: string;
-    symptoms: string;
+    reportedSymptoms: string;
     hasAiReport: boolean;
 };
 
@@ -130,8 +130,8 @@ const fetchAppointmentsWithAI = async (doctorId: string) => {
         .from("appointments")
         .select("reports!inner(id)", { count: "exact", head: true })
         .eq("doctor_id", doctorId)
-        .not("reports.ai_suggestion", "is", null);
-    
+        .not("reports.ai_diagnosis_suggestion", "is", null);
+
     if (error) throw new Error(`Error counting patients: ${error.message}`);
 
     return count ?? 0;
@@ -151,15 +151,15 @@ const fetchTodayAppointments = async (
                 scheduled_time,
                 duration,
                 visit_type,
-                symptoms, 
+                reported_symptoms, 
                 profiles!patient_id (first_name, last_name),
-                reports (ai_suggestion)
+                reports (ai_diagnosis_suggestion)
         `)
         .eq("doctor_id", doctorId)
         .gte("scheduled_time", todayStartIso)
         .lte("scheduled_time", todayEndIso)
         .order("scheduled_time", { ascending: true });
-    
+
     if (error) throw new Error(`Error getting today appointments: ${error.message}`);
 
 
@@ -167,7 +167,7 @@ const fetchTodayAppointments = async (
 };
 
 const formatTodayAppointment = (item: any): DoctorAppointment => {
-    const hasAiReport = !!(item.reports && item.reports.ai_suggestion);
+    const hasAiReport = !!(item.reports && item.reports.ai_diagnosis_suggestion);
     const patient = Array.isArray(item.profiles)
         ? item.profiles[0]
         : item.profiles;
@@ -182,7 +182,7 @@ const formatTodayAppointment = (item: any): DoctorAppointment => {
         duration: item.duration,
         type: item.visit_type,
         patientName: `${patient.first_name} ${patient.last_name}`,
-        symptoms: item.symptoms,
+        reportedSymptoms: item.reported_symptoms,
         hasAiReport: hasAiReport,
     };
 }

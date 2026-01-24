@@ -1,6 +1,6 @@
 export type AiReportData = {
-    summary: string;
-    duration: string;
+    reported_summary: string;
+    sickness_duration: string;
     ai_diagnosis_suggestion: string;
     ai_confidence_score: number;
     ai_recommended_specializations: string[];
@@ -9,22 +9,22 @@ export type AiReportData = {
 
 
 export type SummaryReportDetails = {
-    appointmentId: string;
+    appointment_id: string;
     reported_symptoms: string;
     doctor_final_diagnosis: string | null;
     patient: {
-        firstName: string;
-        lastName: string;
+        first_name: string;
+        last_name: string;
         pesel: string;
         age: number;
     };
     doctor: {
-        firstName: string;
-        lastName: string;
+        first_name: string;
+        last_name: string;
     };
     details: {
-        summary: string;
-        duration: string;
+        reported_summary: string;
+        sickness_duration: string;
         ai_confidence_score: number;
         ai_recommended_specializations: string[];
         ai_diagnosis_suggestion: string;

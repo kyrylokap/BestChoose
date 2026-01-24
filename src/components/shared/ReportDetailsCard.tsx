@@ -50,7 +50,7 @@ export const ReportDetailsCard = ({ appointmentId }: { appointmentId: string }) 
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3 text-sm text-slate-600">
-                <InfoBadge label="Full Name" value={`${reportDetails.patient.firstName} ${reportDetails.patient.lastName}`} />
+                <InfoBadge label="Full Name" value={`${reportDetails.patient.first_name} ${reportDetails.patient.last_name}`} />
                 <InfoBadge label="Age" value={reportDetails.patient.age} />
                 <InfoBadge label="PESEL" value={reportDetails.patient.pesel} />
             </div>
@@ -66,13 +66,13 @@ const ReportSummary = ({ reportDetails }: { reportDetails: SummaryReportDetails 
 
     if (!details) {
         return (
-            <NoAiRaport/>
+            <NoAiRaport />
         )
     }
 
     const aiReportData: AiReportData = {
-        summary: details.summary,
-        duration: details.duration,
+        reported_summary: details.reported_summary,
+        sickness_duration: details.sickness_duration,
         ai_diagnosis_suggestion: details.ai_diagnosis_suggestion,
         ai_confidence_score: details.ai_confidence_score,
         ai_recommended_specializations: details.ai_recommended_specializations,
@@ -89,7 +89,7 @@ const ReportSummary = ({ reportDetails }: { reportDetails: SummaryReportDetails 
                         <div className="font-semibold text-slate-900">Reported Symptoms</div>
                         <div>{reportDetails.reported_symptoms}</div>
                     </div>
-                    <NoAiRaport/>
+                    <NoAiRaport />
                 </div>
             )}
 
@@ -131,11 +131,11 @@ export const AiRaport = ({ data }: { data: AiReportData }) => {
                 </div>
                 <div>
                     <dt className="font-semibold text-slate-900">Duration</dt>
-                    <dd>{data.duration}</dd>
+                    <dd>{data.sickness_duration}</dd>
                 </div>
                 <div>
                     <dt className="font-semibold text-slate-900">Summary</dt>
-                    <dd>{data.summary}</dd>
+                    <dd>{data.reported_summary}</dd>
                 </div>
             </dl>
 
@@ -169,6 +169,7 @@ export const AiRaport = ({ data }: { data: AiReportData }) => {
     )
 }
 
+
 const DoctorRaport = ({ reportDetails }: { reportDetails: SummaryReportDetails }) => {
     const { details, doctor, doctor_final_diagnosis } = reportDetails;
 
@@ -184,7 +185,7 @@ const DoctorRaport = ({ reportDetails }: { reportDetails: SummaryReportDetails }
                                 Doctor's Verification
                             </p>
                             <p className="text-xs text-slate-500">
-                                Reviewed by {doctor?.firstName} {doctor?.lastName}
+                                Reviewed by {doctor?.first_name} {doctor?.last_name}
                             </p>
                         </div>
                         <div className="rounded-full bg-blue-100 p-1.5">

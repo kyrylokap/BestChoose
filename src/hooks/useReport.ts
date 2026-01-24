@@ -26,7 +26,7 @@ export const fetchReportDetails = async (
         .from("appointments")
         .select(`
                 id,
-                symptoms,
+                reported_symptoms,
                 patient:profiles!patient_id (
                     first_name,
                     last_name,
@@ -43,8 +43,8 @@ export const fetchReportDetails = async (
                     ai_confidence_score,
                     ai_recommended_specializations,
                     sickness_duration,
-                    ai_suggestion,
-                    summary,
+                    ai_diagnosis_suggestion,
+                    reported_summary,
                     doctor_feedback_ai_rating
                 ),
                 doctor_final_diagnosis
@@ -66,26 +66,26 @@ const formatReport = (data: any): SummaryReportDetails => {
     const doctorProfile = Array.isArray(doctorLink.profiles) ? doctorLink.profiles[0] : doctorLink.profiles
 
     return {
-        appointmentId: data.id,
-        reported_symptoms: data.symptoms,
+        appointment_id: data.id,
+        reported_symptoms: data.reported_symptoms,
         doctor_final_diagnosis: data.doctor_final_diagnosis,
         patient: {
-            firstName: patientData?.first_name,
-            lastName: patientData?.last_name,
+            first_name: patientData?.first_name,
+            last_name: patientData?.last_name,
             pesel: patientData?.pesel,
             age: calculateAge(patientData?.date_of_birth),
         },
         doctor: {
-            firstName: doctorProfile.first_name,
-            lastName: doctorProfile.last_name,
+            first_name: doctorProfile.first_name,
+            last_name: doctorProfile.last_name,
         },
         details: reportData
             ? {
                 ai_confidence_score: reportData.ai_confidence_score,
                 ai_recommended_specializations: reportData.ai_recommended_specializations,
-                duration: reportData.sickness_duration,
-                ai_diagnosis_suggestion: reportData.ai_suggestion,
-                summary: reportData.summary,
+                sickness_duration: reportData.sickness_duration,
+                ai_diagnosis_suggestion: reportData.ai_diagnosis_suggestion,
+                reported_summary: reportData.reported_summary,
                 doctor_feedback_ai_rating: reportData.doctor_feedback_ai_rating,
             }
             : null,
