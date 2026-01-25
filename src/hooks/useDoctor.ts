@@ -2,24 +2,13 @@ import { useCallback } from "react";
 import { supabase } from "@/api/supabase";
 
 
-
-export type DoctorAppointment = {
-    id: string;
-    time: string;
-    duration: number;
-    type: string;
-    patientName: string;
-    reportedSymptoms: string;
-    hasAiReport: boolean;
-};
-
 export type DashboardStats = {
     todayAppointments: number;
     totalPatients: number;
     aiReports: number;
 };
 
-export type VisitCompletionData = {
+export type AppointmentCompletionData = {
     appointmentId: string;
     diagnosis: string;
     aiRating: 'accurate' | 'inaccurate' | null;
@@ -28,17 +17,6 @@ export type VisitCompletionData = {
 
 
 export const useDoctor = (userId: string | undefined) => {
-
-    const getUpcomingAppointments = useCallback(async (): Promise<DoctorAppointment[]> => {
-        if (!userId) return [];
-
-        try {
-            const data = await fetchTodayAppointments(userId);
-            return data;
-        } catch (error) {
-            return [];
-        }
-    }, [userId]);
 
     const getStats = useCallback(async (): Promise<DashboardStats | null> => {
         if (!userId) return null;
@@ -61,7 +39,7 @@ export const useDoctor = (userId: string | undefined) => {
         }
     }, [userId]);
 
-    const completeVisit = useCallback(async (data: VisitCompletionData): Promise<boolean> => {
+    const completeAppointment = useCallback(async (data: AppointmentCompletionData): Promise<boolean> => {
         try {
             await saveDoctorDiagnosis(data);
             return true;
@@ -70,19 +48,10 @@ export const useDoctor = (userId: string | undefined) => {
         }
     }, []);
 
-    const getIsReport = useCallback(async (appointmentId: string): Promise<boolean> => {
-        try {
-            return await checkReportExists(appointmentId);
-        } catch (error) {
-            return false;
-        }
-    }, []);
 
     return {
-        getUpcomingAppointments,
         getStats,
-        completeVisit,
-        getIsReport
+        completeAppointment,
     };
 };
 
@@ -139,62 +108,7 @@ const fetchAppointmentsWithAI = async (doctorId: string) => {
 
 
 
-const fetchTodayAppointments = async (
-    doctorId: string
-): Promise<DoctorAppointment[]> => {
-    const { todayStartIso, todayEndIso } = getTodayRangeISO();
-
-    const { data, error } = await supabase
-        .from("appointments")
-        .select(`
-                id,
-                availability!inner (
-                    start_time,
-                    duration
-                ),
-                visit_type,
-                reported_symptoms, 
-                profiles!patient_id (first_name, last_name),
-                reports (ai_diagnosis_suggestion)
-        `)
-        .eq("doctor_id", doctorId)
-        .gte("availability.start_time", todayStartIso)
-        .lte("availability.start_time", todayEndIso)
-        .order("start_time", { foreignTable: "availability", ascending: true });
-
-    if (error) throw new Error(`Error getting today appointments: ${error.message}`);
-
-
-    return data.map(formatTodayAppointment);
-};
-
-const formatTodayAppointment = (item: any): DoctorAppointment => {
-    const hasAiReport = !!(item.reports && item.reports.ai_diagnosis_suggestion);
-    const patient = Array.isArray(item.profiles)
-        ? item.profiles[0]
-        : item.profiles;
-    
-    const startTime = item.availability?.start_time;
-    const duration = item.availability?.duration;
-
-    const dateObj = new Date(startTime);
-
-    return {
-        id: item.id,
-        time: dateObj.toLocaleTimeString('en-US', {
-            hour: '2-digit', minute: '2-digit', hour12: false
-        }),
-        duration: duration,
-        type: item.visit_type,
-        patientName: `${patient.first_name} ${patient.last_name}`,
-        reportedSymptoms: item.reported_symptoms,
-        hasAiReport: hasAiReport,
-    };
-}
-
-
-
-const saveDoctorDiagnosis = async ({ appointmentId, diagnosis, aiRating }: VisitCompletionData) => {
+const saveDoctorDiagnosis = async ({ appointmentId, diagnosis, aiRating }: AppointmentCompletionData) => {
     const { error: appointmentError } = await supabase
         .from("appointments")
         .update({
@@ -229,16 +143,3 @@ const saveDoctorDiagnosis = async ({ appointmentId, diagnosis, aiRating }: Visit
 
 };
 
-const checkReportExists = async (appointmentId: string): Promise<boolean> => {
-    const { data, error } = await supabase
-        .from('appointments')
-        .select('report_id')
-        .eq('id', appointmentId)
-        .maybeSingle();
-
-    if (error) throw new Error(`Report checking error: ${error.message}`);
-
-    if (!data) return false
-
-    return !!data.report_id;
-};

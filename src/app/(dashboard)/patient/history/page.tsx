@@ -2,7 +2,8 @@
 
 import { useSession } from "@/components/hoc/AuthSessionProvider";
 import { SectionHeader } from "@/components/shared/SectionHeader";
-import { ReportItem, usePatient } from "@/hooks/usePatient";
+import { useReport } from "@/hooks/useReport";
+import { ReportHistoryItem } from "@/types/report";
 import { Calendar, CheckCircle2, File } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,19 +15,19 @@ export default function HistoryPage() {
 
   const { session } = useSession();
 
-  const [reports, setReports] = useState<ReportItem[]>([]);
-  const { getReports } = usePatient(session?.user?.id);
+  const [reports, setReports] = useState<ReportHistoryItem[]>([]);
+  const { getReportsHistory } = useReport(session?.user?.id);
   useEffect(() => {
     let isMounted = true;
 
     const loadData = async () => {
-      const data = await getReports();
+      const data = await getReportsHistory();
       if (isMounted) setReports(data);
     };
 
     loadData();
     return () => { isMounted = false; };
-  }, [getReports]);
+  }, [getReportsHistory]);
 
   return (
     <section className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -52,7 +53,7 @@ export default function HistoryPage() {
 }
 
 
-const HistoryCard = ({ report }: { report: ReportItem }) => {
+const HistoryCard = ({ report }: { report: ReportHistoryItem }) => {
 
   return (
     <Link

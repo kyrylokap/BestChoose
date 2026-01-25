@@ -10,20 +10,20 @@ import { AiReportData, SummaryReportDetails } from "@/types/report";
 
 export const ReportDetailsCard = ({ appointmentId }: { appointmentId: string }) => {
     const { session } = useSession();
-    const { getReportDetails } = useReport(session?.user?.id);
+    const { getConsultationDetails } = useReport(session?.user?.id);
 
     const [reportDetails, setReportDetails] = useState<SummaryReportDetails | null>(null);
     useEffect(() => {
         let isMounted = true;
 
         const loadData = async () => {
-            const data = await getReportDetails(appointmentId);
+            const data = await getConsultationDetails(appointmentId);
             if (isMounted) setReportDetails(data);
         };
 
         loadData();
         return () => { isMounted = false; };
-    }, [getReportDetails]);
+    }, [getConsultationDetails]);
 
     if (!reportDetails) {
         return (

@@ -14,6 +14,7 @@ import { SectionHeader } from "@/components/shared/SectionHeader";
 import { useChatLogic } from '@/hooks/useChatLogic';
 import { useAppointmentForm } from '@/hooks/bookAppointment/useAppointmentForm';
 import { useAppointmentData } from '@/hooks/bookAppointment/useAppointmentData';
+import { useUser } from '@/hooks/useUser';
 
 
 const VISIT_TYPES = ["Sick visit", "Follow-up", "Consultation", "Appointment", "Referral"];
@@ -21,17 +22,20 @@ const VISIT_TYPES = ["Sick visit", "Follow-up", "Consultation", "Appointment", "
 
 export default function BookAppointmentPage() {
     const router = useRouter();
+
     const { session } = useSession();
+    const userId = session?.user?.id
+    const { user } = useUser(userId);
 
     const {
         formData, setFormData,
         updateField, isFormComplete, aiReport,
         locationQuery, setLocationQuery,
-    } = useAppointmentForm(session?.user);
+    } = useAppointmentForm(user);
 
     const {
         specializations, locations, doctors, slots, bookAppointment
-    } = useAppointmentData(formData, locationQuery, session?.user?.id);
+    } = useAppointmentData(formData, locationQuery, userId);
 
     const { clearHistory } = useChatLogic();
 
@@ -384,7 +388,7 @@ const LocationAndDoctorSection = ({
                                 onClick={() => setFormData((prev: FormDataState) => ({
                                     ...prev,
                                     doctorId: doctor.id,
-                                    selectedSlotId: null, 
+                                    selectedSlotId: null,
                                     selectedSlotTime: null
                                 }))}
                                 className={`cursor-pointer rounded-xl border p-3 flex items-center gap-3 transition ${formData.doctorId === doctor.id
