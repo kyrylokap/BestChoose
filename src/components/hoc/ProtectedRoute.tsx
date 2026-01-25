@@ -8,7 +8,7 @@ import { Role } from "@/types/account";
 
 type ProtectedRouteProps = {
   children: React.ReactNode;
-  allowedRole: Role;
+  allowedRole: "admin" | "doctor" | "patient";
 };
 
 const roleRoutes: Record<string, string> = {

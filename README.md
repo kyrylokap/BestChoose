@@ -1,37 +1,139 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## BestChoose
 
-## Getting Started
+BestChoose to aplikacja webowa (Next.js App Router) dla platformy medycznej z uwierzytelnianiem w Supabase oraz panelami dla ról: **admin / doctor / patient**.
 
-First, run the development server:
+### Dokumentacja
+
+- **Repozytorium**: `https://github.com/kyrylokap/BestChoose`
+- **Dokumentacja PDF**: [docs/BestChoose_Dokumentacja.pdf](docs/BestChoose_Dokumentacja.pdf)
+
+### Autorzy
+
+Projekt został wykonany przez 2 osoby:
+
+- **Kyrylo Kapinos**
+- **Vasyl Ishchuk**
+
+### Opis aplikacji i funkcjonalności
+
+- **Uwierzytelnianie**: logowanie/rejestracja/reset hasła oparte o Supabase Auth
+- **Autoryzacja i routing per rola**: public/protected routes + przekierowania do właściwego dashboardu
+- **Panel admina**: zarządzanie lekarzami (lista, wyszukiwanie z debounce, paginacja) + strona statystyk z wykresami
+- **Panel lekarza**: podgląd nadchodzących wizyt (harmonogram) i przejście do szczegółów wizyty
+- **Portal pacjenta**: szybki start wywiadu z AI + lista nadchodzących wizyt
+- **UX**: spójne loadery podczas sprawdzania sesji/przekierowań + powiadomienia toast
+
+### Wymagania (requirements)
+
+- **Node.js**: v20+ (v18 może działać, ale zalecane jest v20+)
+- **Package manager**: yarn (zalecany) / npm / pnpm / bun
+- **Supabase**: projekt Supabase + klucze (patrz sekcja env)
+- **Opcjonalnie**: Supabase CLI (jeśli chcesz generować typy przez `yarn generate`)
+
+### Stack technologiczny
+
+- **Framework**: Next.js 16 (App Router)
+- **UI**: React 19, Tailwind CSS v4, Headless UI, lucide-react
+- **Formy i walidacja**: react-hook-form + zod
+- **Wykresy**: victory
+- **Auth/DB**: Supabase (`@supabase/supabase-js`, `@supabase/ssr`)
+- **Notyfikacje**: sonner
+
+### Konfiguracja środowiska (env)
+
+Utwórz plik `.env.local` (zalecane) i dodaj:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NEXT_PUBLIC_SERVICE_ROLE_KEY=
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+#### Ważne (bezpieczeństwo)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Zmienne `NEXT_PUBLIC_*` są wystawiane do przeglądarki w Next.js. **Service role key nie może być publiczny**.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Ten projekt aktualnie czyta `NEXT_PUBLIC_SERVICE_ROLE_KEY` (zob. `src/api/supabaseAdmin.ts`). Traktuj go jako **super wrażliwy**:
 
-## Learn More
+- **Nigdy go nie commituj**
+- **Nigdy nie używaj go w kodzie client-side**
+- Docelowo przenieś go do zmiennej **server-only** (bez prefixu `NEXT_PUBLIC_`) i używaj tylko w API/route handlers/actions po stronie serwera
 
-To learn more about Next.js, take a look at the following resources:
+### Jak uruchomić aplikację (krok po kroku)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+#### 1) Instalacja zależności
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+yarn
+```
 
-## Deploy on Vercel
+#### 2) Konfiguracja env
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Utwórz `.env.local`
+- Uzupełnij wymagane zmienne Supabase (powyżej)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# BestChoose
+#### 3) Start w trybie developerskim
+
+```bash
+yarn dev
+```
+
+Otwórz `http://localhost:3000`.
+
+### Skrypty (npm/yarn scripts)
+
+- **Dev**:
+
+```bash
+yarn dev
+```
+
+- **Lint**:
+
+```bash
+yarn lint
+```
+
+- **Build (produkcja)**:
+
+```bash
+yarn build
+```
+
+- **Start (produkcja)** (po buildzie):
+
+```bash
+yarn start
+```
+
+- **Generowanie typów Supabase** (opcjonalnie; wymaga Supabase CLI + dostępu do projektu):
+
+```bash
+yarn generate
+```
+
+### Struktura projektu
+
+Najważniejsze katalogi i pliki:
+
+- **Routing / widoki (App Router)**: `src/app/`
+  - dashboardy: `src/app/(dashboard)/`
+- **Komponenty**: `src/components/`
+  - dashboardy: `src/components/dashboards/`
+  - route guards / sesja: `src/components/hoc/`
+  - elementy współdzielone: `src/components/shared/`
+- **Hooki**: `src/hooks/`
+- **Supabase clienty**: `src/api/supabase.ts`, `src/api/supabaseAdmin.ts`
+- **Dane statyczne**: `src/data/`
+- **Typy**: `src/types/`
+
+### Jak działa logika dostępu (w skrócie)
+
+- **Public routes** (np. login/register): przekierowują zalogowanych użytkowników do odpowiedniego dashboardu.
+- **Protected routes** (dashboardy): wymagają sesji i roli; w trakcie sprawdzania sesji pokazują loader, aby uniknąć “flashowania” nieautoryzowanych stron.
+
+### Troubleshooting
+
+- **Pusta strona lub pętla przekierowań**: sprawdź env i czy URL/klucze Supabase są z właściwego projektu.
+- **Wykresy nic nie pokazują**: upewnij się, że w bazie są dane (np. appointments/reports) i aplikacja ma uprawnienia do odczytu.
+- **`yarn generate` nie działa**: zainstaluj i zaloguj Supabase CLI, i sprawdź czy `project-id` w skrypcie pasuje do Twojego projektu.
