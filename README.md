@@ -2,6 +2,18 @@
 
 BestChoose to aplikacja webowa (Next.js App Router) dla platformy medycznej z uwierzytelnianiem w Supabase oraz panelami dla ról: **admin / doctor / patient**.
 
+### Dokumentacja
+
+- **Repozytorium**: `https://github.com/kyrylokap/BestChoose`
+- **Dokumentacja PDF**: [docs/BestChoose_Dokumentacja.pdf](docs/BestChoose_Dokumentacja.pdf)
+
+### Autorzy
+
+Projekt został wykonany przez 2 osoby:
+
+- **Kyrylo Kapinos**
+- **Vasyl Ishchuk**
+
 ### Opis aplikacji i funkcjonalności
 
 - **Uwierzytelnianie**: logowanie/rejestracja/reset hasła oparte o Supabase Auth
