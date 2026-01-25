@@ -2,6 +2,15 @@
 
 BestChoose is a Next.js (App Router) application using Supabase authentication and role-based dashboards (admin/doctor/patient).
 
+### Key features
+
+- **Authentication**: Supabase auth flows (login/register/reset-password)
+- **Role-based routing**: public/protected routes with redirects for admin/doctor/patient
+- **Admin dashboard**: doctor management (list/search/pagination) + statistics page with charts
+- **Doctor dashboard**: upcoming schedule + visit details
+- **Patient portal**: AI medical assistant interview entrypoint + upcoming appointments
+- **Consistent UX**: loading/redirect spinners and toast notifications
+
 ### Tech stack
 
 - **Runtime**: Node.js (recommended **v20+**)
