@@ -16,10 +16,6 @@ export const AppointmentCard = ({ appointment, actionSlot, onCardClick }: Appoin
         return 'bg-amber-50 text-amber-600';
     };
 
-    const interactiveClasses = onCardClick
-        ? "cursor-pointer hover:border-blue-200 hover:bg-blue-50/30 hover:shadow-md transition-all duration-200"
-        : "";
-
     return (
         <div className="group relative rounded-3xl border border-slate-100 bg-white p-6 shadow-sm hover:border-blue-100 hover:shadow-md transition-all">
             {onCardClick && (

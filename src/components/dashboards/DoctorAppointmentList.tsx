@@ -4,6 +4,7 @@ import { useSession } from "../hoc/AuthSessionProvider";
 import { Appointment, useAppointment } from "@/hooks/useAppointments";
 import { AppointmentCard } from "../shared/AppointmentCard";
 import { useRouter } from "next/navigation";
+import { Spinner } from "../shared/Spinner";
 
 type Props = {
     filter: 'all' | 'today';
@@ -15,11 +16,12 @@ export const DoctorAppointmentList = ({ filter }: Props) => {
 
     const router = useRouter();
     const handleCardClick = (appointmentId: string) => {
-        router.push(`/doctor/appointment/${appointmentId}`);
+        if (filter === 'today') router.push(`/doctor/appointment/${appointmentId}`);
+        else router.push(`/doctor/appointments/report/${appointmentId}`);
     };
 
-    const [appointments, setAppointments] = useState<Appointment[]>([]);
-    const { getAppointmentsDetails, confirmAppointment, cancelAppointment } = useAppointment(userId);
+    const [appointments, setAppointments] = useState<Appointment[] | null>(null);
+    const { getAppointmentsDetails, confirmAppointment, cancelAppointment, isLoading } = useAppointment(userId);
 
     const refreshData = async () => {
         const data = await getAppointmentsDetails(filter, "doctor");
@@ -45,6 +47,15 @@ export const DoctorAppointmentList = ({ filter }: Props) => {
         await cancelAppointment(appointmetId, availabilityId);
         refreshData();
     };
+
+   
+    if (isLoading || appointments === null) {
+        return (
+            <div className="rounded-3xl bg-slate-50 p-8 text-center text-slate-500">
+                <Spinner />
+            </div>
+        );
+    }
 
     if (appointments.length === 0) {
         return (

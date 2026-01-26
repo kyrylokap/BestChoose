@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { supabase } from "@/api/supabase";
 
 export type Appointment = {
@@ -26,17 +26,23 @@ const ROLE_COLUMN_MAP = {
 
 
 export const useAppointment = (userId: string | undefined) => {
+    const [isLoading, setIsLoading] = useState(false);
+
     const getAppointmentsDetails = useCallback(async (
         filter: 'all' | 'upcoming' | 'today',
         userRole: "patient" | "doctor"
     ): Promise<Appointment[]> => {
         if (!userId) return [];
 
+        setIsLoading(true);
+
         try {
             const appointments = await fetchAppointments(userId, filter, userRole);
             return appointments;
         } catch (error) {
             return [];
+        } finally {
+            setIsLoading(false);
         }
     }, [userId]);
 
@@ -54,10 +60,10 @@ export const useAppointment = (userId: string | undefined) => {
             return await markAppointmentCancelled(appointmetId, availabilityId)
         } catch (error) {
             return false
-        }
+        } 
     }, [userId]);
 
-    return { getAppointmentsDetails, confirmAppointment, cancelAppointment }
+    return { getAppointmentsDetails, confirmAppointment, cancelAppointment, isLoading }
 }
 
 
@@ -100,6 +106,10 @@ const fetchAppointments = async (
         .from('appointments')
         .select(selectQuery)
         .eq(filterColumn, userId);
+
+    if (userRole === 'doctor') {
+        query = query.neq('status', 'Cancelled');
+    }
 
     const now = new Date();
 

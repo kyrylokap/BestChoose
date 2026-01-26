@@ -1,27 +1,36 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { supabase } from "@/api/supabase";
 import { ReportHistoryItem, SummaryReportDetails } from "@/types/report";
 
 
 export const useReport = (userId: string | undefined) => {
+    const [isLoading, setIsLoading] = useState(false);
+
     const getConsultationDetails = useCallback(async (appointmentId: string): Promise<SummaryReportDetails | null> => {
+        setIsLoading(true);
         try {
             const data = await fetchConsultationDetails(appointmentId);
             return data;
         } catch (error) {
             console.error("Error fetching report:", error);
             return null;
+        } finally {
+            setIsLoading(false);
         }
     }, [userId]);
 
     const getReportsHistory = useCallback(async (): Promise<ReportHistoryItem[]> => {
         if (!userId) return [];
 
+        setIsLoading(true);
+
         try {
             const reports = await fetchPatientReports(userId);
             return reports;
         } catch (error) {
             return [];
+        } finally {
+            setIsLoading(false);
         }
     }, [userId]);
 
@@ -33,7 +42,7 @@ export const useReport = (userId: string | undefined) => {
         }
     }, []);
 
-    return { getConsultationDetails, getReportsHistory, getIsReport };
+    return { getConsultationDetails, getReportsHistory, getIsReport, isLoading };
 };
 
 

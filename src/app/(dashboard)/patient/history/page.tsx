@@ -2,6 +2,7 @@
 
 import { useSession } from "@/components/hoc/AuthSessionProvider";
 import { SectionHeader } from "@/components/shared/SectionHeader";
+import { Spinner } from "@/components/shared/Spinner";
 import { useReport } from "@/hooks/useReport";
 import { ReportHistoryItem } from "@/types/report";
 import { Calendar, CheckCircle2, File } from "lucide-react";
@@ -15,8 +16,8 @@ export default function HistoryPage() {
 
   const { session } = useSession();
 
-  const [reports, setReports] = useState<ReportHistoryItem[]>([]);
-  const { getReportsHistory } = useReport(session?.user?.id);
+  const [reports, setReports] = useState<ReportHistoryItem[] | null>(null);
+  const { getReportsHistory, isLoading } = useReport(session?.user?.id);
   useEffect(() => {
     let isMounted = true;
 
@@ -29,6 +30,24 @@ export default function HistoryPage() {
     return () => { isMounted = false; };
   }, [getReportsHistory]);
 
+
+  if (isLoading || reports === null) {
+    return (
+      <div className="rounded-3xl bg-slate-50 p-8 text-center text-slate-500">
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (reports.length === 0) {
+    return (
+      <div className="rounded-3xl bg-slate-50 p-8 text-center text-slate-500">
+        No consultation history.
+      </div>
+    );
+  }
+
+
   return (
     <section className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
       <SectionHeader
@@ -38,15 +57,9 @@ export default function HistoryPage() {
       />
 
       <div className="flex flex-col gap-3">
-        {reports.length > 0 ? (
-          reports.map((report) => (
-            <HistoryCard key={report.id} report={report} />
-          ))
-        ) : (
-          <div className="rounded-3xl bg-slate-50 p-8 text-center text-slate-500">
-            No consultation history
-          </div>
-        )}
+        {reports.map((report) => (
+          <HistoryCard key={report.id} report={report} />
+        ))}
       </div>
     </section>
   );

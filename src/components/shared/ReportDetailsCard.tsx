@@ -6,31 +6,55 @@ import { useSession } from "../hoc/AuthSessionProvider";
 import { useEffect, useState } from "react";
 import { useReport } from "@/hooks/useReport";
 import { AiReportData, SummaryReportDetails } from "@/types/report";
+import { Spinner } from "./Spinner";
 
 
 export const ReportDetailsCard = ({ appointmentId }: { appointmentId: string }) => {
     const { session } = useSession();
-    const { getConsultationDetails } = useReport(session?.user?.id);
+    const { getConsultationDetails, isLoading: hookLoading } = useReport(session?.user?.id);
 
     const [reportDetails, setReportDetails] = useState<SummaryReportDetails | null>(null);
+    const [isPageLoading, setIsPageLoading] = useState(true);
+
     useEffect(() => {
         let isMounted = true;
 
         const loadData = async () => {
-            const data = await getConsultationDetails(appointmentId);
-            if (isMounted) setReportDetails(data);
+           try {
+                setIsPageLoading(true);
+                
+                const data = await getConsultationDetails(appointmentId);
+                
+                if (isMounted) {
+                    setReportDetails(data);
+                }
+            } catch (error) {
+                console.error("Failed to load report:", error);
+            } finally {
+                if (isMounted) setIsPageLoading(false);
+            }
         };
 
         loadData();
         return () => { isMounted = false; };
-    }, [getConsultationDetails]);
+    }, [getConsultationDetails, appointmentId]);
+
+
+
+   if (isPageLoading || hookLoading) {
+        return (
+            <div className="rounded-3xl bg-slate-50 p-8 text-center text-slate-500">
+                <Spinner />
+            </div>
+        );
+    }
 
     if (!reportDetails) {
         return (
             <div className="rounded-3xl bg-slate-50 p-8 text-center text-slate-500">
-                No loading appointment details
+                No appointment details found.
             </div>
-        )
+        );
     }
 
     return (
@@ -66,7 +90,15 @@ const ReportSummary = ({ reportDetails }: { reportDetails: SummaryReportDetails 
 
     if (!details) {
         return (
-            <NoAiRaport />
+            <div className="space-y-6">
+                <div className="flex flex-col gap-4">
+                    <div className="grid gap-1 text-sm pl-4 text-slate-600">
+                        <div className="font-semibold text-slate-900">Reported Symptoms</div>
+                        <div>{reported_symptoms}</div>
+                    </div>
+                    <NoAiRaport />
+                </div>
+            </div>
         )
     }
 
@@ -81,20 +113,8 @@ const ReportSummary = ({ reportDetails }: { reportDetails: SummaryReportDetails 
 
     return (
         <div className="space-y-6">
-            {details ? (
-                <AiRaport data={aiReportData} />
-            ) : (
-                <div className="flex flex-col gap-4">
-                    <div className="grid gap-1 text-sm pl-4 text-slate-600">
-                        <div className="font-semibold text-slate-900">Reported Symptoms</div>
-                        <div>{reportDetails.reported_symptoms}</div>
-                    </div>
-                    <NoAiRaport />
-                </div>
-            )}
-
+            <AiRaport data={aiReportData} />
             <DoctorRaport reportDetails={reportDetails} />
-
         </div>
     );
 };
