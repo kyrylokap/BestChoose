@@ -1,6 +1,6 @@
 "use client";
 
-import { ClipboardClock, Sparkles, Star, Stethoscope } from "lucide-react";
+import { ClipboardClock, Sparkles, Stethoscope } from "lucide-react";
 import InfoBadge from "./InfoBadge";
 import { useSession } from "../hoc/AuthSessionProvider";
 import { useEffect, useState } from "react";
@@ -20,11 +20,11 @@ export const ReportDetailsCard = ({ appointmentId }: { appointmentId: string }) 
         let isMounted = true;
 
         const loadData = async () => {
-           try {
+            try {
                 setIsPageLoading(true);
-                
+
                 const data = await getConsultationDetails(appointmentId);
-                
+
                 if (isMounted) {
                     setReportDetails(data);
                 }
@@ -41,7 +41,7 @@ export const ReportDetailsCard = ({ appointmentId }: { appointmentId: string }) 
 
 
 
-   if (isPageLoading || hookLoading) {
+    if (isPageLoading || hookLoading) {
         return (
             <div className="rounded-3xl bg-slate-50 p-8 text-center text-slate-500">
                 <Spinner />

@@ -1,5 +1,7 @@
 import { useCallback, useState } from "react";
 import { supabase } from "@/api/supabase";
+import { FormDataState } from "@/types/book_appointment";
+import { AiReportData } from "@/types/report";
 
 export type Appointment = {
     id: string;
@@ -60,10 +62,25 @@ export const useAppointment = (userId: string | undefined) => {
             return await markAppointmentCancelled(appointmetId, availabilityId)
         } catch (error) {
             return false
-        } 
+        }
     }, [userId]);
 
-    return { getAppointmentsDetails, confirmAppointment, cancelAppointment, isLoading }
+    
+    const bookAppointment = useCallback(async (
+        formData: FormDataState,
+        report: AiReportData | null
+    ): Promise<boolean> => {
+        if (!userId) return false
+
+        try {
+            await submitAppointmentTransaction(userId, formData, report);
+            return true
+        } catch (error: any) {
+            throw new Error(`Booking error: ${error.message}`);
+        }
+    }, [userId]);
+
+    return { getAppointmentsDetails, confirmAppointment, cancelAppointment, bookAppointment, isLoading }
 }
 
 
@@ -218,3 +235,93 @@ const markAppointmentCancelled = async (appointmentId: string, availabilityId: s
 
     return true;
 }
+
+
+
+
+export const submitAppointmentTransaction = async (
+    userId: string,
+    formData: FormDataState,
+    report: AiReportData | null
+) => {
+    await updatePatientProfileIfNeeded(userId, formData);
+
+    let savedReportId = null;
+
+    if (report) {
+        savedReportId = await insertReport(userId, report);
+    }
+
+    await insertAppointment(userId, formData, savedReportId);
+
+    await markSlotAsBooked(formData.doctorId, formData.selectedSlotTime!);
+};
+
+
+const updatePatientProfileIfNeeded = async (userId: string, formData: FormDataState) => {
+    if (!formData.pesel && !formData.birthDate) {
+        return;
+    }
+
+    const updates: any = {};
+
+    if (formData.pesel) updates.pesel = formData.pesel;
+    if (formData.birthDate) updates.date_of_birth = formData.birthDate;
+
+    const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', userId);
+
+    if (error) throw new Error(`Failed to update patient data: ${error.message}`);
+};
+
+
+const insertReport = async (userId: string, report: AiReportData): Promise<string> => {
+    const { data, error } = await supabase
+        .from('reports')
+        .insert({
+            patient_id: userId,
+            reported_summary: report.reported_summary,
+            ai_diagnosis_suggestion: report.ai_diagnosis_suggestion,
+            ai_recommended_specializations: report.ai_recommended_specializations,
+            ai_confidence_score: report.ai_confidence_score,
+            sickness_duration: report.sickness_duration,
+            status: 'Sent to doctor'
+        })
+        .select('id')
+        .single();
+
+    if (error) throw new Error(`Failed to save the report: ${error.message}`);
+    return data.id;
+};
+
+
+const insertAppointment = async (userId: string, formData: FormDataState, reportId: string | null) => {
+
+    const { error } = await supabase
+        .from('appointments')
+        .insert({
+            patient_id: userId,
+            doctor_id: formData.doctorId,
+            availability_id: formData.selectedSlotId,
+            report_id: reportId,
+            visit_type: formData.visitType,
+            reported_symptoms: formData.reportedSymptoms,
+            status: 'Pending',
+        });
+
+    if (error) throw new Error(`Failed to save the appointment data: ${error.message}`);
+};
+
+
+const markSlotAsBooked = async (doctorId: string, timeSlot: string) => {
+    const { error } = await supabase
+        .from('availability')
+        .update({ is_booked: true })
+        .eq('doctor_id', doctorId)
+        .eq('start_time', timeSlot);
+
+    if (error) throw new Error(`Error locking the selected appointment slot: ${error.message}`);
+};
+

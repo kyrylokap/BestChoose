@@ -9,7 +9,7 @@ export default function AppointmentPage(){
       return (
         <section className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
           <SectionHeader
-            title="My Appointments"
+            title="Consultations"
             subtitle="Upcoming and Scheduled Consultations"
             onBack={() => router.back()}
           />

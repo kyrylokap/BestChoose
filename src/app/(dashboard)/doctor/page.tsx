@@ -37,11 +37,11 @@ export default function DoctorPage() {
 
     const statsList = useMemo(() => [
         {
-            label: "Appointments Today",
+            label: "Consultations Today",
             value: stats?.todayAppointments ?? 0,
         },
         {
-            label: "Appointments with AI Report",
+            label: "Consultations with AI Report",
             value: stats?.aiReports ?? 0,
         },
         {
@@ -106,7 +106,7 @@ const ScheduleSection = () => {
         <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
             <div className="mb-6 flex items-center justify-between">
                 <div>
-                    <p className="text-sm text-slate-500">Appointment Calendar</p>
+                    <p className="text-sm text-slate-500">Consultations Calendar</p>
                     <h3 className="text-2xl font-semibold text-slate-900">{formattedDate}</h3>
                 </div>
                 <div className="flex h-10 w-10 items-center justify-center rounded-full shrink-0 bg-slate-50">

@@ -38,9 +38,9 @@ export const patientPortalData: PortalData = {
 export const doctorPortalData: PortalData = {
   quickActions: [
     {
-      label: "My Appointments",
-      description: "Browse all appointments",
-      targetView: "appointments",
+      label: "Consultations",
+      description: "Browse all patient visits",
+      targetView: "consultations",
     },
     {
       label: "Manage Availability",

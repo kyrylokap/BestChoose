@@ -14,9 +14,34 @@ export type AppointmentCompletionData = {
     aiRating: 'accurate' | 'inaccurate' | null;
 };
 
+export type Doctor = {
+    id: string;
+    specialization: string;
+    profiles: {
+        first_name: string;
+        last_name: string;
+    };
+};
+
+
 
 
 export const useDoctor = (userId: string | undefined) => {
+    const getDoctors = useCallback(async (locationId: string, specialization?: string): Promise<Doctor[]> => {
+        try {
+            return await fetchDoctors(locationId, specialization)
+        } catch (error) {
+            return [];
+        }
+    }, [userId]);
+
+    const getUniqueSpecializations = useCallback(async (): Promise<string[]> => {
+        try {
+            return await fetchSpecializations()
+        } catch (error) {
+            return [];
+        }
+    }, [userId]);
 
     const getStats = useCallback(async (): Promise<DashboardStats | null> => {
         if (!userId) return null;
@@ -52,7 +77,86 @@ export const useDoctor = (userId: string | undefined) => {
     return {
         getStats,
         completeAppointment,
+        getDoctors,
+        getUniqueSpecializations,
     };
+};
+
+
+
+export const fetchDoctors = async (locationId: string, specialization?: string): Promise<Doctor[]> => {
+    if (!locationId) return [];
+
+    let queryBuilder = supabase
+        .from('doctors')
+        .select(`
+            id,
+            specialization,
+            profiles!inner (
+                first_name,
+                last_name
+            ),
+            availability!inner (
+                location_id
+            )
+        `)
+        .eq('availability.location_id', locationId);
+
+    if (specialization) {
+        queryBuilder = queryBuilder.eq('specialization', specialization);
+    }
+
+    const { data, error } = await queryBuilder;
+
+    if (error) throw new Error(`Error fetching doctors: ${error.message}`);
+
+
+    const uniqueDoctorsMap = new Map();
+
+    data.forEach((doctor: any) => {
+        if (!uniqueDoctorsMap.has(doctor.id)) {
+            uniqueDoctorsMap.set(doctor.id, {
+                id: doctor.id,
+                specialization: doctor.specialization,
+                profiles: Array.isArray(doctor.profiles) ? doctor.profiles[0] : doctor.profiles
+            });
+        }
+    });
+
+    return Array.from(uniqueDoctorsMap.values());
+};
+
+
+const fetchSpecializations = async (): Promise<string[]> => {
+    const { data, error } = await supabase
+        .from('doctors')
+        .select('specialization');
+
+    if (error) {
+        throw new Error(`Error fetching specializations: ${error.message}`);
+    }
+
+    const allSpecializations = data.map((d: any) => d.specialization).filter(Boolean);
+    return Array.from(new Set(allSpecializations));
+};
+
+
+
+
+
+const fetchTodayAppointmentsCount = async (doctorId: string) => {
+    const { todayStartIso, todayEndIso } = getTodayRangeISO();
+
+    const { count, error } = await supabase
+        .from("appointments")
+        .select("availability!inner(start_time)", { count: "exact", head: true })
+        .eq("doctor_id", doctorId)
+        .gte("availability.start_time", todayStartIso)
+        .lte("availability.start_time", todayEndIso);
+
+    if (error) throw new Error(`Error today appointments: ${error.message}`);
+
+    return count ?? 0;
 };
 
 const getTodayRangeISO = () => {
@@ -69,20 +173,6 @@ const getTodayRangeISO = () => {
 
 
 
-const fetchTodayAppointmentsCount = async (doctorId: string) => {
-    const { todayStartIso, todayEndIso } = getTodayRangeISO();
-
-   const { count, error } = await supabase
-        .from("appointments")
-        .select("availability!inner(start_time)", { count: "exact", head: true }) 
-        .eq("doctor_id", doctorId)
-        .gte("availability.start_time", todayStartIso) 
-        .lte("availability.start_time", todayEndIso);
-
-    if (error) throw new Error(`Error today appointments: ${error.message}`);
-
-    return count ?? 0;
-};
 
 const fetchCountPatients = async (doctorId: string) => {
     const { data, error } = await supabase.rpc("count_unique_patients", {
@@ -142,4 +232,3 @@ const saveDoctorDiagnosis = async ({ appointmentId, diagnosis, aiRating }: Appoi
     }
 
 };
-

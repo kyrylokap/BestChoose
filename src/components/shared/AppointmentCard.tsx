@@ -1,4 +1,4 @@
-import { Calendar, Clock, MapPin, User, Sparkles } from "lucide-react"; 
+import { Calendar, Clock, MapPin, User } from "lucide-react";
 import { Appointment } from "@/hooks/useAppointments";
 import { ReactNode } from "react";
 

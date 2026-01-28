@@ -16,8 +16,8 @@ export const DoctorAppointmentList = ({ filter }: Props) => {
 
     const router = useRouter();
     const handleCardClick = (appointmentId: string) => {
-        if (filter === 'today') router.push(`/doctor/appointment/${appointmentId}`);
-        else router.push(`/doctor/appointments/report/${appointmentId}`);
+        if (filter === 'today') router.push(`/doctor/consultation/${appointmentId}`);
+        else router.push(`/doctor/consultations/report/${appointmentId}`);
     };
 
     const [appointments, setAppointments] = useState<Appointment[] | null>(null);
