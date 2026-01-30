@@ -71,7 +71,7 @@ export default function ManageAvailabilityPage() {
                             </div>
                         ) : (
                             <div className="divide-y divide-slate-100">
-                                <div className="grid grid-cols-12 gap-4 bg-slate-50/50 px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-400">
+                                <div className="hidden md:grid grid-cols-12 gap-4 bg-slate-50/50 px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-400">
                                     <div className="col-span-3">Start</div>
                                     <div className="col-span-3">End</div>
                                     <div className="col-span-4">Location</div>
@@ -135,17 +135,36 @@ type DatePickerCardProps = {
 }
 
 const DatePickerCard = ({ selectedDate, setSelectedDate, setIsCopyModalOpen }: DatePickerCardProps) => {
+    const formatDate = (dateString: string) => {
+        const date = dateString ? new Date(dateString) : new Date();
+
+        const validDate = isNaN(date.getTime()) ? new Date() : date;
+
+        return new Intl.DateTimeFormat('en-US', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        }).format(validDate);
+    };
+
     return (
         <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm" >
+            <style>{`
+                input[type="date"]::-webkit-date-and-time-value {
+                    text-align: left; 
+                    margin-left: 0;
+                }
+            `}</style>
+
             <label className="mb-3 block text-sm font-semibold text-slate-700">Select Date</label>
             <div className="relative">
                 <input
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pl-11 text-sm font-medium outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                    className="appearance-none w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pl-11 text-sm font-medium outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all min-h-[46px]"
                 />
-                <CalendarIcon className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+                <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
             </div>
 
             <div className="mt-6 pt-6 border-t border-slate-50">
@@ -200,11 +219,15 @@ const AvailabilityToolbar = ({
     onAddSlot, onGenerateSlots, onSave, isSaving, hasConflicts, hasSlots, hasMissingFields
 }: ToolbarProps) => {
     const [workEndTime, setWorkEndTime] = useState("");
+    const [isFocused, setIsFocused] = useState(false);
 
     return (
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sticky top-4 z-10">
-            <div className="flex items-center gap-4">
-
+        <div className="
+            sticky top-4 z-10 
+            rounded-2xl border border-slate-100 bg-white p-4 shadow-sm 
+            flex flex-col md:flex-row md:items-center md:justify-between gap-4
+        ">
+            <div className="flex flex-col md:flex-row md:items-center gap-4 w-full md:w-auto">
                 <button
                     onClick={onAddSlot}
                     className="flex items-center gap-2 rounded-xl bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-600 hover:bg-blue-100 transition-colors"
@@ -214,29 +237,40 @@ const AvailabilityToolbar = ({
                 </button>
 
 
-                <div className="h-8 w-px bg-slate-200"></div>
+                <div className="hidden md:block h-8 w-px bg-slate-200"></div>
 
 
                 <div className="flex items-center gap-2 rounded-xl bg-purple-50 p-1 pr-2 border border-purple-100">
                     <button
                         onClick={() => onGenerateSlots(workEndTime)}
                         disabled={!workEndTime}
-                        title={!workEndTime ? "Set end time first" : "Auto-fill based on last slot duration + 10min break"}
-                        className="flex items-center gap-2 rounded-lg bg-white px-3 py-1.5 text-sm font-semibold shadow-sm transition-all 
+                        title={!workEndTime ? "You need to set the end time before continuing" : "Auto-fill based on last slot duration + 10min break"}
+                        className="flex h-9 items-center gap-2 rounded-lg bg-white px-3 py-1.5 text-sm font-semibold shadow-sm transition-all 
                                                 disabled:opacity-50 disabled:cursor-not-allowed disabled:text-slate-400 
                                                 disabled:shadow-none text-purple-700 hover:bg-purple-50"                                >
                         <Wand2 className="h-3.5 w-3.5" />
                         Magic Fill
                     </button>
 
+                    <div className="relative h-9 flex-1 ">
+                        {(!workEndTime && !isFocused) && (
+                            <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm font-bold text-purple-400">
+                                Set end time
+                            </span>
+                        )}
 
-                    <input
-                        type="time"
-                        value={workEndTime}
-                        placeholder="Set end time"
-                        onChange={(e) => setWorkEndTime(e.target.value)}
-                        className="bg-transparent text-sm font-bold text-purple-900 outline-none focus:underline cursor-pointer w-26 text-center"
-                    />
+                        <input
+                            type="time"
+                            value={workEndTime}
+                            onChange={(e) => setWorkEndTime(e.target.value)}
+                            onFocus={() => setIsFocused(true)}
+                            onBlur={() => setIsFocused(false)}
+                            className={`h-full w-full mr-8  bg-transparent text-center text-sm font-bold outline-none focus:underline cursor-pointer
+                               ${(!workEndTime && !isFocused) ? 'text-transparent' : 'text-purple-900'}
+                            `}
+                        />
+                    </div>
+
                 </div>
             </div>
 
@@ -292,8 +326,10 @@ const SlotRow = ({ slot, locations, onUpdate, onRemove, onNewLocation }: SlotRow
         : "";
 
     return (
-        <div className="group grid grid-cols-12 gap-4 items-center px-6 py-4 hover:bg-blue-50/30 transition-colors relative border-b border-slate-100 last:border-0">
-            <div className="col-span-3 relative">
+        <div className="group grid grid-cols-2 md:grid-cols-12 gap-4 items-center px-6 py-4 hover:bg-blue-50/30 transition-colors relative border-b border-slate-100 last:border-0">
+            <div className="col-span-1 md:col-span-3 relative">
+                <span className="mb-1 block text-[10px] font-bold uppercase text-slate-400 md:hidden">Start</span>
+
                 <input
                     type="time"
                     value={slot.start_time}
@@ -309,7 +345,9 @@ const SlotRow = ({ slot, locations, onUpdate, onRemove, onNewLocation }: SlotRow
                 )}
             </div>
 
-            <div className="col-span-3">
+            <div className="col-span-1 md:col-span-3">
+                <span className="mb-1 block text-[10px] font-bold uppercase text-slate-400 md:hidden">End</span>
+
                 <input
                     type="time"
                     value={slot.end_time}
@@ -319,7 +357,9 @@ const SlotRow = ({ slot, locations, onUpdate, onRemove, onNewLocation }: SlotRow
                 />
             </div>
 
-            <div className="col-span-4 relative">
+            <div className="col-span-2 md:col-span-4 relative">
+                <span className="mb-1 block text-[10px] font-bold uppercase text-slate-400 md:hidden">Location</span>
+                
                 {isLocked ? (
                     <div className="relative">
                         <input
